@@ -4,7 +4,7 @@ from client_handler import ClientHandler
 class FakeConnection:
 
     data = [
-        "Heartbeat ooo",
+        b'Heartbeat ooo',
     ]
     index = 0
 

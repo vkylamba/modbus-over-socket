@@ -31,8 +31,12 @@ class ClientHandler(object):
     def serve(self):
         data = self.connection.recv(16)
         logger.info(f"received from {self.client_address}: {data}")
-        self.data_buffer += data
-        if "Heartbeat" in data:
+        if isinstance(data, str):
+            data_str = data
+        else:
+            data_str = data.decode("utf-8")
+        self.data_buffer += data_str
+        if "Heartbeat" in data_str:
             self.start_communication()
         elif self.current_command_index < len(self.registers) - 1:
             # Receive response
