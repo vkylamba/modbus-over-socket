@@ -21,7 +21,7 @@ while True:
         client_handler = ClientHandler(
             connection,
             client_address,
-            "device_conf.json"
+            "device_conf_delta.json"
         )
         while True:
             client_handler.serve()

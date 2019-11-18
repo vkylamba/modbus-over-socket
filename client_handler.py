@@ -2,11 +2,14 @@ import logging
 
 import json
 
-from socket_minimal_modebus import Instrument
+from modbus.socket_minimal_modebus import Instrument as RTUInstrument
+from modbus.data_parser import DataParser as RTUDataParser
 
-from data_parser import DataParser
+from delta.instrument import DeltaInstrument
+from delta.data_parser import DeltaDataParser
+
 from data_logger import logger as datalogger
-
+from constants import DELTA_RPI, MODBUS_RTU
 
 logger = logging.getLogger(__name__)
 logger.setLevel('INFO')
@@ -22,11 +25,21 @@ class ClientHandler(object):
         self.data_buffer = ""
         self.conf_file = conf_file
         self.load_configurations()
-        self.instrument = Instrument(
-            "fake_serial",
-            self.target_address
-        )
-        self.parser = DataParser()
+
+        if self.comm_protocol == DELTA_RPI:
+            self.instrument = DeltaInstrument(
+                "fake_serial",
+                self.target_address
+            )
+            self.parser = RTUDataParser()
+        elif self.comm_protocol == MODBUS_RTU:
+            self.instrument = RTUInstrument(
+                "fake_serial",
+                self.target_address
+            )
+            self.parser = DeltaDataParser()
+        else:
+            raise Exception(f"Invalid comm protocol {self.comm_protocol}")
 
     def serve(self):
         data = self.connection.recv(16)
@@ -66,6 +79,7 @@ class ClientHandler(object):
     def load_configurations(self):
         with open(self.conf_file, 'r') as fp:
             data_dict = json.load(fp)
+        self.comm_protocol = data_dict.get('comm_protocol')
         self.target_address = data_dict.get("address")
         self.registers = data_dict.get("registers")
 

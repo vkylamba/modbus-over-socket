@@ -17,8 +17,10 @@ class FakeConnection:
             return ''
 
     def sendall(self, data):
-        data_hex = " ".join("{:02x}".format(ord(c)) for c in data)
-        print(f"SENT TO SOCKET: {data_hex}")
+        if isinstance(data, str):
+            data_hex = " ".join("{:02x}".format(ord(c)) for c in data)
+            print(f"SENT TO SOCKET: {data_hex}")
+        print(f"SENT TO SOCKET: {data}")
         # data_back = "".join([chr(int(x, 16)) for x in data_hex.split()])
         resp = "02 01 02 0a 11 3b 50"
         resp = "".join([chr(int(x, 16)) for x in resp.split()])
@@ -32,7 +34,7 @@ if __name__ == "__main__":
     client_handler = ClientHandler(
         connection,
         1024,
-        "device_conf.json"
+        "device_conf_delta.json"
     )
     while True:
         client_handler.serve()

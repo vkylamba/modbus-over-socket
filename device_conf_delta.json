@@ -1,0 +1,17 @@
+{
+   "timeout": 2,
+   "comm_protocol": "delta-rpi",
+   "address": 255,
+   "baudrate": 9600,
+   "dataBits": 8,
+   "parity": "N",
+   "stopbit": 1,
+   "registers":[
+        {
+            "tag_id": 1,
+            "reg_address": "60,1",
+            "data_type": "UINT16",
+            "reg_count": "1024"
+        }
+    ]
+}
