@@ -1,5 +1,3 @@
-import logging
-
 import json
 
 from modbus.socket_minimal_modebus import Instrument as RTUInstrument
@@ -11,8 +9,7 @@ from delta.data_parser import DeltaDataParser
 from data_logger import logger as datalogger
 from constants import DELTA_RPI, MODBUS_RTU
 
-logger = logging.getLogger(__name__)
-logger.setLevel('INFO')
+from console_logger import logger
 
 
 class ClientHandler(object):
