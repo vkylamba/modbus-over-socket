@@ -39,7 +39,7 @@ class ClientHandler(object):
             raise Exception(f"Invalid comm protocol {self.comm_protocol}")
 
     def serve(self):
-        data = self.connection.recv(16)
+        data = self.connection.recv(18)
         if data:
             logger.info(f"received from {self.client_address}: {data}")
             if isinstance(data, str):
@@ -91,6 +91,7 @@ class ClientHandler(object):
         )
         if isinstance(data_to_send, str):
             data_to_send = data_to_send.encode('utf-8')
+        logger.info(f"Sending to socket: {data_to_send}")
         self.connection.sendall(data_to_send)
         self.current_func_code = func_code
 
