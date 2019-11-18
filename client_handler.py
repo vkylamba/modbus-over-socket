@@ -77,6 +77,8 @@ class ClientHandler(object):
             register_address,
             number_of_registers
         )
+        if isinstance(data_to_send, str):
+            data_to_send = data_to_send.encode('utf-8')
         self.connection.sendall(data_to_send)
         self.current_func_code = func_code
 
