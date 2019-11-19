@@ -5,6 +5,7 @@ class FakeConnection:
 
     data = [
         b'Heartbeat ooo',
+        b'\x02\x06\x01\r\x00\x00\x02\xcdRPI M20A,\xfd\xde\x03',
     ]
     index = 0
 
@@ -22,9 +23,9 @@ class FakeConnection:
             print(f"SENT TO SOCKET: {data_hex}")
         print(f"SENT TO SOCKET: {data}")
         # data_back = "".join([chr(int(x, 16)) for x in data_hex.split()])
-        resp = "02 01 02 0a 11 3b 50"
-        resp = "".join([chr(int(x, 16)) for x in resp.split()])
-        self.data.append(resp)
+        # resp = "02 01 02 0a 11 3b 50"
+        # resp = "".join([chr(int(x, 16)) for x in resp.split()])
+        # self.data.append(resp)
 
 
 if __name__ == "__main__":

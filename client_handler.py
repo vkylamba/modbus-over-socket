@@ -19,7 +19,7 @@ class ClientHandler(object):
     def __init__(self, connection, client_address, conf_file):
         self.connection = connection
         self.client_address = client_address
-        self.data_buffer = ""
+        self.data_buffer = b""
         self.conf_file = conf_file
         self.load_configurations()
 
@@ -28,13 +28,13 @@ class ClientHandler(object):
                 "fake_serial",
                 self.target_address
             )
-            self.parser = RTUDataParser()
+            self.parser = DeltaDataParser()
         elif self.comm_protocol == MODBUS_RTU:
             self.instrument = RTUInstrument(
                 "fake_serial",
                 self.target_address
             )
-            self.parser = DeltaDataParser()
+            self.parser = RTUDataParser()
         else:
             raise Exception(f"Invalid comm protocol {self.comm_protocol}")
 
@@ -42,12 +42,19 @@ class ClientHandler(object):
         data = self.connection.recv(19)
         if data:
             logger.info(f"received from {self.client_address}: {data}")
-            if isinstance(data, str):
-                data_str = data
-            else:
-                data_str = data.decode("utf-8")
-            self.data_buffer += data_str
-            if "Heartbeat" in data_str:
+            is_heartbeat = False
+            try:
+                if isinstance(data, str):
+                    data_str = data
+                else:
+                    data_str = data.decode("utf-8")
+                if "Heartbeat" in data_str:
+                    is_heartbeat = True
+            except UnicodeDecodeError:
+                is_heartbeat = False
+
+            self.data_buffer += data
+            if is_heartbeat:
                 self.start_communication()
             elif self.current_command_index < len(self.registers) - 1:
                 # Receive response
@@ -56,11 +63,14 @@ class ClientHandler(object):
     def start_communication(self):
         # Send commands
         self.current_command_index = 0
-        self.data_buffer = ""
+        self.data_buffer = b""
         self.send_data()
 
     def handle_command_response(self):
-        data_from_socket = bytearray(self.data_buffer, "utf-8")
+        data_from_socket = self.data_buffer
+        if isinstance(self.data_buffer, str):
+            data_from_socket = bytearray(self.data_buffer, "utf-8")
+
         command_response = b''
         try:
             command_response = self.instrument.get_command_response(
@@ -68,7 +78,7 @@ class ClientHandler(object):
                 self.current_func_code
             )
         except Exception as e:
-            logger.error(e)
+            logger.error("Failed parsing response: ", e)
         else:
             self.process_command_data(command_response)
         self.current_command_index += 1
