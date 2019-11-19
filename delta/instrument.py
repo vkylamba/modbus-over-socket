@@ -2,7 +2,7 @@ import struct
 import binascii
 
 from .crc16 import calcData
-from .packet_struct import DELTA_RPI_STRUCT
+from .packet_struct import DELTA_RPI_DATA_STRUCT
 
 READ_BYTES = 1024
 STX = 0x02
@@ -71,7 +71,7 @@ class DeltaInstrument:
         elif req == ACK:
             if DEBUG:
                 print("ACK value received: response from slave (inverter)")
-            data['values'] = struct.unpack(DELTA_RPI_STRUCT, data['raw'])
+            data['values'] = struct.unpack(DELTA_RPI_DATA_STRUCT, data['raw'])
         if DEBUG:
             pprint(data)
         return data
