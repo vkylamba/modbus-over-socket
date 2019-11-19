@@ -10,14 +10,15 @@
         {
             "tag_id": 1,
             "reg_address": "0,0",
-            "data_type": "UINT16",
-            "reg_count": "1024"
+            "data_type": "str",
+            "reg_count": "02"
         },
         {
             "tag_id": 1,
             "reg_address": "60,1",
-            "data_type": "UINT16",
-            "reg_count": "1024"
+            "data_type": "json",
+            "reg_count": "1024",
+            "key_name": "key_vals"
         }
     ]
 }

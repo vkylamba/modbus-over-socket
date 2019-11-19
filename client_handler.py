@@ -1,5 +1,5 @@
 import json
-
+from datetime import datetime, timedelta
 from modbus.socket_minimal_modebus import Instrument as RTUInstrument
 from modbus.data_parser import DataParser as RTUDataParser
 
@@ -56,8 +56,7 @@ class ClientHandler(object):
             self.data_buffer += data
             if is_heartbeat:
                 self.start_communication()
-            elif self.current_command_index < len(self.registers) - 1:
-                # Receive response
+            else:
                 self.handle_command_response()
 
     def start_communication(self):
@@ -78,11 +77,12 @@ class ClientHandler(object):
                 self.current_func_code
             )
         except Exception as e:
-            logger.error("Failed parsing response: ", e)
+            logger.error("Failed parsing response")
+            logger.error(e)
         else:
             self.process_command_data(command_response)
-        self.current_command_index += 1
-        self.send_data()
+
+        self.check_and_send_next_command()
 
     def load_configurations(self):
         with open(self.conf_file, 'r') as fp:
@@ -90,6 +90,18 @@ class ClientHandler(object):
         self.comm_protocol = data_dict.get('comm_protocol')
         self.target_address = data_dict.get("address")
         self.registers = data_dict.get("registers")
+
+    def check_and_send_next_command(self):
+        this_time = datetime.now()
+        if hasattr(self, 'sent_time'):
+            diff = this_time - self.sent_time
+        else:
+            diff = timedelta(seconds=21)
+
+        if diff > timedelta(seconds=20) and self.current_command_index < len(self.registers) - 1:
+            self.current_command_index += 1
+            self.send_data()
+            self.sent_time = datetime.now()
 
     def send_data(self):
         command_conf = self.registers[self.current_command_index]
@@ -104,10 +116,13 @@ class ClientHandler(object):
         logger.info(f"Sending to socket: {data_to_send}")
         self.connection.sendall(data_to_send)
         self.current_func_code = func_code
+        self.data_buffer = b""
 
     def process_command_data(self, command_response):
-        command_conf = self.registers[self.current_command_index]
-        register_address = command_conf.get("reg_address")
-        data_type = command_conf.get("data_type")
-        value = self.parser.parse(command_response, data_type)
-        datalogger.info(f"register: {register_address}, data: {value}")
+        if command_response:
+            command_conf = self.registers[self.current_command_index]
+            register_address = command_conf.get("reg_address")
+            data_type = command_conf.get("data_type")
+            key_name = command_conf.get("key_name")
+            value = self.parser.parse(command_response, data_type, key_name)
+            datalogger.info(value)

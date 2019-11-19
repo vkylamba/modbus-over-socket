@@ -2,7 +2,7 @@ import struct
 import binascii
 
 from .crc16 import calcData
-from .packet_struct import DELTA_RPI_DATA_STRUCT
+from .packet_struct import DELTA_RPI_DATA, DELTA_RPI_DATA_STRUCT
 
 READ_BYTES = 1024
 STX = 0x02
@@ -72,9 +72,21 @@ class DeltaInstrument:
             if DEBUG:
                 print("ACK value received: response from slave (inverter)")
             data['values'] = struct.unpack(DELTA_RPI_DATA_STRUCT, data['raw'])
+            data['key_vals'] = self.get_key_value_pairs(data['values'], DELTA_RPI_DATA)
         if DEBUG:
             pprint(data)
         return data
+
+    def get_key_value_pairs(self, data, packet_struct):
+        key_vals = {}
+        keys = [x[0] for x in packet_struct]
+        if len(keys) == len(data):
+            for idx, key in enumerate(keys):
+                value = data[idx]
+                if isinstance(value, bytes):
+                    value = value.decode("utf-8")
+                key_vals[key] = value
+        return key_vals
 
     def get_frames_from_raw_data(self, data):
         idx = 0

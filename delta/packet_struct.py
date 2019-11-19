@@ -17,7 +17,7 @@ def ma_mi(data):
 
 DELTA_RPI_DATA = (
     ("SAP part number", "11s", str),
-    ("SAP serial number", "13s", str),
+    ("SAP serial number", "18s", str),
     ("SAP date code", "4s", binascii.hexlify),
     ("SAP revision", "2s", binascii.hexlify),
     ("DSP FW Rev", "2s", ma_mi, 0, "MA,MI"),
@@ -26,10 +26,10 @@ DELTA_RPI_DATA = (
     ("Redundant MCU FW Date", "2s", ma_mi, 0, "MA,MI"),
     ("Display MCU FW Rev", "2s", ma_mi, 0, "MA,MI"),
     ("Display MCU FW Date", "2s", ma_mi, 0, "MA,MI"),
-    ("Display WebPage Ctrl FW Rev", "2s", ma_mi, 0, "MA,MI"),
-    ("Display WebPage Ctrl FW Date", "2s", ma_mi, 0, "MA,MI"),
-    ("Display WiFi Ctrl FW Rev", "2s", ma_mi, 0, "MA,MI"),
-    ("Display WiFi Ctrl FW Date", "2s", ma_mi, 0, "MA,MI"),
+    # ("Display WebPage Ctrl FW Rev", "2s", ma_mi, 0, "MA,MI"),
+    # ("Display WebPage Ctrl FW Date", "2s", ma_mi, 0, "MA,MI"),
+    # ("Display WiFi Ctrl FW Rev", "2s", ma_mi, 0, "MA,MI"),
+    # ("Display WiFi Ctrl FW Date", "2s", ma_mi, 0, "MA,MI"),
     ("AC Voltage(Phase1)", "H", float, -1, "V"),
     ("AC Current(Phase1)", "H", float, -2, "A", "AphA"),
     ("AC Power(Phase1)", "H", int, 0, "W"),
