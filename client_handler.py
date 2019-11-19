@@ -10,6 +10,10 @@ from data_logger import logger as datalogger
 from constants import DELTA_RPI, MODBUS_RTU
 
 from console_logger import logger
+from api_logger.logger import APILogger
+
+
+api_logger = APILogger()
 
 
 class ClientHandler(object):
@@ -126,3 +130,7 @@ class ClientHandler(object):
             key_name = command_conf.get("key_name")
             value = self.parser.parse(command_response, data_type, key_name)
             datalogger.info(value)
+            try:
+                api_logger.log(value)
+            except Exception as e:
+                logger.error(e)

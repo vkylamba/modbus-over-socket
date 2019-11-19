@@ -29,7 +29,7 @@ import struct
 import sys
 import time
 
-import fake_serial as serial
+import utils.fake_serial as serial
 
 if sys.version > "3":
     import binascii
