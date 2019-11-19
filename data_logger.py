@@ -15,7 +15,7 @@ class JSONFormatter(Formatter):
         JSONFormatter
     """
 
-    def __init__(self, recordfields=[], datefmt=None, customjson=None):
+    def __init__(self, recordfields=None, datefmt=None, customjson=None):
         Formatter.__init__(self, None, datefmt)
         self.recordfields = recordfields
         self.customjson = customjson
@@ -32,7 +32,13 @@ class JSONFormatter(Formatter):
             fields = []
             for x in self.recordfields:
                 fields.append((x, getattr(record, x)))
-            fields.append(('msg', record.msg))
+            if isinstance(record.msg, dict):
+                for key, val in record.msg.items():
+                    self.recordfields.append(key)
+                    fields.append((key, val))
+            else:
+                msg = record.msg
+                fields.append(('msg', msg))
             return OrderedDict(fields)
         else:
             return record.msg
@@ -40,6 +46,7 @@ class JSONFormatter(Formatter):
     def format(self, record):
         self._formattime(record)
         jsondata = self._getjsondata(record)
+        jsondata.pop("message")
         try:
             formattedjson = dumps(jsondata, cls=self.customjson)
         except Exception as e:
