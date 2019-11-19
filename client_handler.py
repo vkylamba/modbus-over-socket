@@ -39,7 +39,7 @@ class ClientHandler(object):
             raise Exception(f"Invalid comm protocol {self.comm_protocol}")
 
     def serve(self):
-        data = self.connection.recv(19)
+        data = self.connection.recv(20)
         if data:
             logger.info(f"received from {self.client_address}: {data}")
             is_heartbeat = False
