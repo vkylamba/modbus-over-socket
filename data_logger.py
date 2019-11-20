@@ -30,12 +30,18 @@ class JSONFormatter(Formatter):
     def _getjsondata(self, record):
         if (len(self.recordfields) > 0):
             fields = []
+
             for x in self.recordfields:
-                fields.append((x, getattr(record, x)))
-            if isinstance(record.msg, dict):
+                if hasattr(record, x):
+                    fields.append((x, getattr(record, x)))
+
+            if isinstance(record.msg, dict) and not getattr(
+                self, 'recordfields_added', False
+            ):
                 for key, val in record.msg.items():
                     self.recordfields.append(key)
                     fields.append((key, val))
+                    self.recordfields_added = True
             else:
                 msg = record.msg
                 fields.append(('msg', msg))
