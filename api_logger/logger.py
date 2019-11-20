@@ -1,10 +1,10 @@
 import requests
 
-API_BASE = 'http://localhost:8113'
+API_BASE = 'https://data.okosengineering.com'
 DEVICE_PATH = '/api/devices/'
 DATA_PATH = '/api/data/'
 
-API_KEY = '64e0f471e35b913e8edb372d42c80dadc82a0053'
+API_KEY = 'cdc746d7fc7249ab099a5d32bb15202806e3a023'
 
 DEVICE_TYPE = 'DELTA-RPI Inverter'
 
