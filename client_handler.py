@@ -11,9 +11,11 @@ from constants import DELTA_RPI, MODBUS_RTU
 
 from console_logger import logger
 from api_logger.logger import APILogger
+from api_logger.thingsboard import ThingsBoardAPILogger
 
 
 api_logger = APILogger()
+things_board_api_logger = ThingsBoardAPILogger()
 
 
 class ClientHandler(object):
@@ -81,8 +83,8 @@ class ClientHandler(object):
                 self.current_func_code
             )
         except Exception as e:
-            logger.error("Failed parsing response")
-            logger.error(e)
+            logger.debug("Failed parsing response")
+            logger.debug(e)
         else:
             self.process_command_data(command_response)
 
@@ -132,5 +134,9 @@ class ClientHandler(object):
             datalogger.info(value)
             try:
                 api_logger.log(value)
+            except Exception as e:
+                logger.error(e)
+            try:
+                things_board_api_logger.log(value)
             except Exception as e:
                 logger.error(e)
