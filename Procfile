@@ -1,1 +1,1 @@
-listner: socket_server.py
+web: socket_server.py
