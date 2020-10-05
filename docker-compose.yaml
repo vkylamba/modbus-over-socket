@@ -1,0 +1,9 @@
+version: "3.8"
+services:
+  socker_server:
+    build: .
+    command: python3 socket_server.py 0.0.0.0
+    ports:
+      - 8024:8024
+    volumes:
+      - ./:/src
