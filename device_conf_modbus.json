@@ -1,0 +1,116 @@
+{
+   "timeout": 2,
+   "comm_protocol":"delta-rpi",
+   "address": 255,
+   "baudrate": 9600,
+   "dataBits": 8,
+   "parity": "N",
+   "stopbit": 1,
+   "tcp_port":"",
+   "tcp_ip":"",
+   "registers":[
+        {
+            "tag_id": 1,
+            "reg_address": 3067,
+            "data_type": "UINT16",
+            "reg_count": 2
+        },
+        {
+            "tag_id": 2,
+            "reg_address": 3081,
+            "data_type": "UINT16",
+            "reg_count": 2
+        },
+        {
+            "tag_id": 3,
+            "reg_address": 3079,
+            "data_type": "UINT16",
+            "reg_count": 2
+        },
+        {
+            "tag_id": 4,
+            "reg_address": 3077,
+            "data_type": "UINT16",
+            "reg_count": 2
+      },
+      {
+            "tag_id": 5,
+            "reg_address": 3003,
+            "data_type": "UINT32",
+            "reg_count": 2
+      },
+      {
+            "tag_id": 6,
+            "reg_address": 3001,
+            "data_type": "UINT32",
+            "reg_count": 2
+      },
+      {
+            "tag_id": 7,
+            "reg_address": 2999,
+            "data_type": "UINT32",
+            "reg_count": 2
+      },
+      {
+            "tag_id": 8,
+            "reg_address": 2699,
+            "data_type": "UINT16",
+            "reg_count": 2
+
+      },
+      {
+            "tag_id": 9,
+            "reg_address": 3109,
+            "data_type": "UINT32",
+            "reg_count": 2
+      },
+      {
+            "tag_id": 10,
+            "reg_address": 3083,
+            "data_type": "UINT16",
+            "reg_count": 2
+      },
+      {
+            "tag_id": 11,
+            "reg_address": 3059,
+            "data_type": "UINT16",
+            "reg_count": 2
+      },
+      {
+            "tag_id": 12,
+            "reg_address": 3031,
+            "data_type": "UINT32",
+            "reg_count": 2
+      },
+      {
+            "tag_id": 13,
+            "reg_address": 3029,
+            "data_type": "UINT32",
+            "reg_count": 2
+      },
+      {
+            "tag_id": 14,
+            "reg_address": 3027,
+            "data_type": "UINT32",
+            "reg_count": 2
+      },
+      {
+            "tag_id": 15,
+            "reg_address": 3023,
+            "data_type": "UINT32",
+            "reg_count": 2
+      },
+      {
+            "tag_id": 16,
+            "reg_address": 3021,
+            "data_type": "UINT32",
+            "reg_count": 2
+      },
+     {
+            "tag_id": 17,
+            "reg_address": 3019,
+            "data_type": "UINT32",
+            "reg_count": 2
+     }
+    ]
+}

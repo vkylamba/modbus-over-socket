@@ -1,9 +1,19 @@
-version: "3.8"
+version: "3"
 services:
-  socker_server:
+  app:
     build: .
+    volumes:
+      - .:/app
+      - app-python-site-packages:/usr/local/lib/python3.6
+      - app-usr-local-bin:/usr/local/bin
+    # command: "tail -f /dev/null"
     command: python3 socket_server.py 0.0.0.0
+    working_dir: /app
     ports:
       - 8024:8024
-    volumes:
-      - ./:/src
+
+volumes:
+  app-python-site-packages:
+    driver: local
+  app-usr-local-bin:
+    driver: local
