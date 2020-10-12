@@ -4,7 +4,7 @@ API_BASE = 'https://data.okosengineering.com'
 DEVICE_PATH = '/api/devices/'
 DATA_PATH = '/api/data/'
 
-API_KEY = 'cdc746d7fc7249ab099a5d32bb15202806e3a023'
+API_KEY = '5a25a67cbba88592a8644437572de2546533c8d0'
 
 DEVICE_TYPE = 'DELTA-RPI Inverter'
 
