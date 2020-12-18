@@ -4,15 +4,10 @@ RUN mkdir app
 
 WORKDIR /app
 
-COPY ./api_logger /app/
-COPY ./delta /app/
-COPY ./modbus /app/
-COPY ./utils /app/
-COPY ./*.py /app/
-COPY ./*.json /app/
-COPY ./*.sh /app/
-COPY ./*.txt /app/
+COPY requirements.txt /app
+RUN pip install -r requirements.txt
+
+COPY . /app
 
 EXPOSE 8024
-RUN pip install -r requirements.txt
 ENTRYPOINT ["sh", "start_server.sh"]
