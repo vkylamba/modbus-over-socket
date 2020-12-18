@@ -13,5 +13,6 @@ COPY ./*.json /app/
 COPY ./*.sh /app/
 COPY ./*.txt /app/
 
+EXPOSE 8024
 RUN pip install -r requirements.txt
 ENTRYPOINT ["sh", "start_server.sh"]
