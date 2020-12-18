@@ -7,7 +7,7 @@ services:
       - app-python-site-packages:/usr/local/lib/python3.6
       - app-usr-local-bin:/usr/local/bin
     # command: "tail -f /dev/null"
-    command: python3 socket_server.py 0.0.0.0
+    # command: python3 socket_server.py 0.0.0.0
     working_dir: /app
     ports:
       - 8024:8024

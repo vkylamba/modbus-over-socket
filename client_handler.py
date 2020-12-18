@@ -1,7 +1,7 @@
 import json
 from datetime import datetime, timedelta
-from .modbus.socket_minimal_modebus import Instrument as RTUInstrument
-from .modbus.data_parser import DataParser as RTUDataParser
+from modbus.socket_minimal_modebus import Instrument as RTUInstrument
+from modbus.data_parser import DataParser as RTUDataParser
 
 from delta.instrument import DeltaInstrument
 from delta.data_parser import DeltaDataParser
