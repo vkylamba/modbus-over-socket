@@ -20,8 +20,7 @@ while True:
         print(sys.stderr, 'client connected:', client_address)
         client_handler = ClientHandler(
             connection,
-            client_address,
-            "device_conf_delta.json"
+            client_address
         )
         while True:
             client_handler.serve()

@@ -15,32 +15,21 @@ from modbus.socket_minimal_modebus import Instrument as RTUInstrument
 api_logger = APILogger()
 things_board_api_logger = ThingsBoardAPILogger()
 
+CONF_FILES = {
+    "STATCON_HBD_INVERTER_CONF": "config-files/device_conf_modbus.json",
+    "DELTA_RPI_INVERTER_CONF": "config-files/device_conf_delta.json"
+}
+
 
 class ClientHandler(object):
     """
+        ClientHandler
     """
 
-    def __init__(self, connection, client_address, conf_file):
+    def __init__(self, connection, client_address):
         self.connection = connection
         self.client_address = client_address
         self.data_buffer = b""
-        self.conf_file = conf_file
-        self.load_configurations()
-
-        if self.comm_protocol == DELTA_RPI:
-            self.instrument = DeltaInstrument(
-                "fake_serial",
-                self.target_address
-            )
-            self.parser = DeltaDataParser()
-        elif self.comm_protocol == MODBUS_RTU:
-            self.instrument = RTUInstrument(
-                "fake_serial",
-                self.target_address
-            )
-            self.parser = RTUDataParser()
-        else:
-            raise Exception(f"Invalid comm protocol {self.comm_protocol}")
 
     def serve(self):
         data = self.connection.recv(20)
@@ -54,8 +43,10 @@ class ClientHandler(object):
                     data_str = data.decode("utf-8")
                 if STATCON_HBD_INVERTER_HEARTBEAT in data_str:
                     is_heartbeat = True
+                    self.load_configurations(CONF_FILES["STATCON_HBD_INVERTER_CONF"])
                 elif DELTA_RPI_INVERTER_HEARTBEAT in data_str:
                     is_heartbeat = True
+                    self.load_configurations(CONF_FILES["DELTA_RPI_INVERTER_CONF"])
                 # Todo: remove this
                 elif "123456789abcdef" in data_str:
                     is_heartbeat = True
@@ -93,12 +84,27 @@ class ClientHandler(object):
 
         self.check_and_send_next_command()
 
-    def load_configurations(self):
-        with open(self.conf_file, 'r') as fp:
+    def load_configurations(self, conf_file):
+        with open(conf_file, 'r') as fp:
             data_dict = json.load(fp)
         self.comm_protocol = data_dict.get('comm_protocol')
         self.target_address = data_dict.get("address")
         self.registers = data_dict.get("registers")
+
+        if self.comm_protocol == DELTA_RPI:
+            self.instrument = DeltaInstrument(
+                "fake_serial",
+                self.target_address
+            )
+            self.parser = DeltaDataParser()
+        elif self.comm_protocol == MODBUS_RTU:
+            self.instrument = RTUInstrument(
+                "fake_serial",
+                self.target_address
+            )
+            self.parser = RTUDataParser()
+        else:
+            raise Exception(f"Invalid comm protocol {self.comm_protocol}")
 
     def check_and_send_next_command(self):
         this_time = datetime.now()
