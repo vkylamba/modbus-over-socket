@@ -50,6 +50,7 @@ class ClientHandler(object):
                 # Todo: remove this
                 elif "123456789abcdef" in data_str:
                     is_heartbeat = True
+                    self.load_configurations(CONF_FILES["DELTA_RPI_INVERTER_CONF"])
             except UnicodeDecodeError:
                 is_heartbeat = False
 
