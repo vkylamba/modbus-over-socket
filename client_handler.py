@@ -1,18 +1,16 @@
 import json
 from datetime import datetime, timedelta
-from modbus.socket_minimal_modebus import Instrument as RTUInstrument
-from modbus.data_parser import DataParser as RTUDataParser
 
-from delta.instrument import DeltaInstrument
-from delta.data_parser import DeltaDataParser
-
-from data_logger import logger as datalogger
-from constants import DELTA_RPI, MODBUS_RTU
-
-from console_logger import logger
 from api_logger.logger import APILogger
 from api_logger.thingsboard import ThingsBoardAPILogger
-
+from console_logger import logger
+from constants import (DELTA_RPI, DELTA_RPI_INVERTER_HEARTBEAT, MODBUS_RTU,
+                       STATCON_HBD_INVERTER_HEARTBEAT)
+from data_logger import logger as datalogger
+from delta.data_parser import DeltaDataParser
+from delta.instrument import DeltaInstrument
+from modbus.data_parser import DataParser as RTUDataParser
+from modbus.socket_minimal_modebus import Instrument as RTUInstrument
 
 api_logger = APILogger()
 things_board_api_logger = ThingsBoardAPILogger()
@@ -54,7 +52,12 @@ class ClientHandler(object):
                     data_str = data
                 else:
                     data_str = data.decode("utf-8")
-                if "Heartbeat" in data_str:
+                if STATCON_HBD_INVERTER_HEARTBEAT in data_str:
+                    is_heartbeat = True
+                elif DELTA_RPI_INVERTER_HEARTBEAT in data_str:
+                    is_heartbeat = True
+                # Todo: remove this
+                elif "123456789abcdef" in data_str:
                     is_heartbeat = True
             except UnicodeDecodeError:
                 is_heartbeat = False
