@@ -11,9 +11,9 @@
    "registers":[
         {
             "tag_id": 1,
-            "reg_address": 30010,
-            "data_type": "str",
-            "reg_count": 11,
+            "reg_address": 30021,
+            "data_type": "INT16",
+            "reg_count": 1,
             "reg_description": "faults"
         }
     ]
