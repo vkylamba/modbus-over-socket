@@ -35,6 +35,8 @@ class ClientHandler(object):
         data = self.connection.recv(20)
         if data:
             logger.info(f"received from {self.client_address}: {data}")
+            data_hex = {":".join("{:02x}".format(c) for c in data)}
+            logger.info(f"HEX format: {data_hex}")
             is_heartbeat = False
             try:
                 if isinstance(data, str):
