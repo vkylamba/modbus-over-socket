@@ -12,30 +12,9 @@
         {
             "tag_id": 1,
             "reg_address": 30010,
-            "data_type": "UINT16",
-            "reg_count": 1,
-            "reg_description": "sw_number"
-        },
-        {
-            "tag_id": 2,
-            "reg_address": 30011,
-            "data_type": "UINT16",
-            "reg_count": 1,
-            "reg_description": "Fault word 0"
-        },
-        {
-            "tag_id": 2,
-            "reg_address": 30012,
-            "data_type": "UINT16",
-            "reg_count": 1,
-            "reg_description": "Fault word 1"
-        },
-        {
-            "tag_id": 2,
-            "reg_address": 30018,
-            "data_type": "UINT16",
-            "reg_count": 1,
-            "reg_description": "Number of active faults"
+            "data_type": "str",
+            "reg_count": 11,
+            "reg_description": "faults"
         }
     ]
 }
