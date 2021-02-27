@@ -1321,15 +1321,15 @@ class Instrument:
                 request,
                 _hexlify(request)
             ))
-        print("Writing to Serial device:")
-        print(request)
-        print(":".join("{:02x}".format(ord(c)) for c in request))
+        # print("Writing to Serial device:")
+        # print(request)
+        # print(":".join("{:02x}".format(ord(c)) for c in request))
         return request
 
     def parse_serial_response(self, answer):
         _latest_read_times[self.serial.port] = _now()
-        print("Reading from Serial device:")
-        print(answer)
+        # print("Reading from Serial device:")
+        # print(answer)
         # print(":".join("{:02x}".format(ord(c)) for c in answer))
 
         if self.close_port_after_each_call:

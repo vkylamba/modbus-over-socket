@@ -78,9 +78,10 @@ class ClientHandler(object):
                 self.current_func_code
             )
         except Exception as e:
-            logger.debug("Failed parsing response")
-            logger.debug(e)
+            logger.error("Failed parsing client response")
+            logger.error(e)
         else:
+            logger.info(f"Command response from client: {command_response}")
             self.process_command_data(command_response)
 
         self.check_and_send_next_command()
