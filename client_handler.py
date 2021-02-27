@@ -131,6 +131,8 @@ class ClientHandler(object):
         if isinstance(data_to_send, str):
             data_to_send = data_to_send.encode('utf-8')
         logger.info(f"Sending to socket: {data_to_send}")
+        data_hex = {":".join("{:02x}".format(c) for c in data_to_send)}
+        logger.info(f"HEX format: {data_hex}")
         self.connection.sendall(data_to_send)
         self.current_func_code = func_code
         self.data_buffer = b""
