@@ -1,13 +1,13 @@
 {
    "timeout": 2,
    "comm_protocol": "modbus-rtu",
-   "address": 255,
+   "connection_type": "serial",
+   "connection_device": "/dev/tty-serial",
+   "address": 1,
    "baudrate": 9600,
-   "dataBits": 8,
+   "data_bits": 8,
    "parity": "N",
    "stopbit": 1,
-   "tcp_port": "",
-   "tcp_ip": "",
    "registers":[
         {
             "tag_id": 1,
