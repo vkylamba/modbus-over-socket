@@ -11,10 +11,13 @@
    "registers":[
         {
             "tag_id": 1,
-            "reg_address": 30021,
+            "reg_address": 40001,
             "data_type": "INT16",
+            "scaling": 0.1,
+            "miv_val": 380,
+            "max_val": 6000,
             "reg_count": 1,
-            "reg_description": "faults"
+            "reg_description": "battery voltage"
         }
     ]
 }
