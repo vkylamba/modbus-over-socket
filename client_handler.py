@@ -16,7 +16,7 @@ api_logger = APILogger()
 things_board_api_logger = ThingsBoardAPILogger()
 
 CONF_FILES = {
-    "STATCON_HBD_INVERTER_CONF": "config-files/device_conf_modbus.json",
+    "STATCON_HBD_INVERTER_CONF": "config-files/statcon_hbd_conf_modbus.json",
     "DELTA_RPI_INVERTER_CONF": "config-files/device_conf_delta.json"
 }
 
