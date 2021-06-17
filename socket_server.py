@@ -1,7 +1,7 @@
 import socket
 import sys
 
-from client_handler import ClientHandler
+from socket_client_handler import ClientHandler
 
 # Create a TCP/IP socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

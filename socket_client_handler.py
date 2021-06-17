@@ -1,14 +1,14 @@
 import json
 from datetime import datetime, timedelta
 
-from api_logger.logger import APILogger
-from api_logger.thingsboard import ThingsBoardAPILogger
-from console_logger import logger
 from constants import (DELTA_RPI, DELTA_RPI_INVERTER_HEARTBEAT, MODBUS_RTU,
                        STATCON_HBD_INVERTER_HEARTBEAT)
-from data_logger import logger as datalogger
 from delta.data_parser import DeltaDataParser
 from delta.instrument import DeltaInstrument
+from loggers.console_logger import logger
+from loggers.data_logger import logger as datalogger
+from loggers.iot import APILogger
+from loggers.thingsboard import ThingsBoardAPILogger
 from modbus.data_parser import DataParser as RTUDataParser
 from modbus.socket_minimal_modebus import Instrument as RTUInstrument
 
@@ -23,7 +23,7 @@ CONF_FILES = {
 
 class ClientHandler(object):
     """
-        ClientHandler
+        ClientHandler for socket connections.
     """
 
     def __init__(self, connection, client_address):
@@ -74,6 +74,12 @@ class ClientHandler(object):
             data_from_socket = bytearray(self.data_buffer, "utf-8")
 
         command_response = b''
+
+        if not hasattr(self, "instrument"):
+            logger.info(f"Received data: {self.data_buffer}")
+            self.data_buffer = b""
+            return
+
         try:
             command_response = self.instrument.get_command_response(
                 data_from_socket,
@@ -91,11 +97,16 @@ class ClientHandler(object):
     def load_configurations(self, conf_file):
         with open(conf_file, 'r') as fp:
             data_dict = json.load(fp)
+
+        self.connection_type = data_dict.get('connection_type', 'socket')
         self.comm_protocol = data_dict.get('comm_protocol')
         self.target_address = data_dict.get("address")
         self.registers = data_dict.get("registers")
 
+        self.connection_device = "fake_serial"
+
         if self.comm_protocol == DELTA_RPI:
+            logger.info("DELTA_RPI device detected.")
             self.instrument = DeltaInstrument(
                 "fake_serial",
                 self.target_address
@@ -111,6 +122,7 @@ class ClientHandler(object):
             raise Exception(f"Invalid comm protocol {self.comm_protocol}")
 
     def check_and_send_next_command(self):
+
         this_time = datetime.now()
         if hasattr(self, 'sent_time'):
             diff = this_time - self.sent_time
@@ -132,8 +144,10 @@ class ClientHandler(object):
         )
         if isinstance(data_to_send, str):
             data_to_send = data_to_send.encode('utf-8')
+            data_hex = {":".join("{:02x}".format(c) for c in data_to_send)}
+        else:
+            data_hex = {":".join("{:02x}".format(ord(c)) for c in data_to_send)}
         logger.info(f"Sending to socket: {data_to_send}")
-        data_hex = {":".join("{:02x}".format(c) for c in data_to_send)}
         logger.info(f"HEX format: {data_hex}")
         self.connection.sendall(data_to_send)
         self.current_func_code = func_code

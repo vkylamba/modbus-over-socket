@@ -6,9 +6,9 @@ class Convert:
     def float_to_decimal(self, f):  # float to decimal conversion
         return Decimal(f)  # just pass the float to decimal constructor
 
-    def signed_to_unsigned(self, integer):
+    def signed_to_unsigned(self, integer_val):
         # packed = struct.pack('>l', integer)  # Packing a long number.
-        return struct.unpack('>L', struct.pack('>l', integer))[0]
+        return struct.unpack('>L', struct.pack('>l', integer_val))[0]
 
     def bit32_list_to_decimal(self, integer):
         xx = float(struct.unpack('!f', struct.pack(
@@ -67,6 +67,9 @@ class DataParser:
         return xx
 
     def parse(self, data, data_type):
+        numbytes = ord(data[0])
+        data = [ord(data[i]) for i in range(1, len(data))]
+
         if data_type == 'UINT32':
             return self.translator.bit32_list_to_decimal(data)
         elif data_type == 'UINT64':

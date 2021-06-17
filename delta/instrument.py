@@ -20,7 +20,7 @@ class DeltaInstrument:
         self.device = device
         self.target_address = target_address
 
-    def read_registers(self, register_address, register_count):
+    def read_registers(self, register_address, register_count, **kwargs):
         cmd, sub_cmd = register_address.split(',')
         cmd = int(cmd, 16)
         sub_cmd = int(sub_cmd, 16)

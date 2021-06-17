@@ -1173,20 +1173,6 @@ class Instrument:
         # Communicate with instrument
         return self._perform_command(functioncode, payload_to_slave)
 
-        # Parse response payload
-        return _parse_payload(
-            payload_from_slave,
-            functioncode,
-            registeraddress,
-            value,
-            number_of_decimals,
-            number_of_registers,
-            number_of_bits,
-            signed,
-            byteorder,
-            payloadformat,
-        )
-
     # #################################### #
     # Communication implementation details #
     # #################################### #

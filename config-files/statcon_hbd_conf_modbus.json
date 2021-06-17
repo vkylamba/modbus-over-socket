@@ -2,12 +2,12 @@
    "timeout": 2,
    "comm_protocol": "modbus-rtu",
    "connection_type": "serial",
-   "connection_device": "/dev/tty-serial",
-   "address": 1,
+   "connection_device": "/dev/tty.usbserial-14210",
+   "address": 3,
    "baudrate": 9600,
    "data_bits": 8,
    "parity": "N",
-   "stopbit": 1,
+   "stopbits": 1,
    "registers":[
         {
             "tag_id": 1,
@@ -17,7 +17,30 @@
             "miv_val": 380,
             "max_val": 6000,
             "reg_count": 1,
-            "reg_description": "battery voltage"
+            "reg_description": "battery voltage",
+            "functioncode": 4
+        },
+        {
+            "tag_id": 1,
+            "reg_address": 40002,
+            "data_type": "INT16",
+            "scaling": 0.1,
+            "miv_val": 380,
+            "max_val": 6000,
+            "reg_count": 1,
+            "reg_description": "battery voltage",
+            "functioncode": 4
+        },
+        {
+            "tag_id": 1,
+            "reg_address": 40003,
+            "data_type": "INT16",
+            "scaling": 0.1,
+            "miv_val": 380,
+            "max_val": 6000,
+            "reg_count": 1,
+            "reg_description": "battery voltage",
+            "functioncode": 4
         }
     ]
 }
