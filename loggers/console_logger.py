@@ -1,6 +1,8 @@
 import sys
 import logging
 
+logging.basicConfig(format='%(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
+
 
 def get_console_handler():
     console_handler = logging.StreamHandler(sys.stdout)
