@@ -1840,7 +1840,7 @@ def _num_to_onebyte_string(inputvalue):
     """
     _check_int(inputvalue, minvalue=0, maxvalue=0xFF)
 
-    return chr(inputvalue)
+    return chr(inputvalue).encode()
 
 
 def _num_to_twobyte_string(value, number_of_decimals=0, lsb_first=False, signed=False):
@@ -2372,10 +2372,10 @@ def _pack(formatstring, value):
         errortext += "conversion failed. Value: {0!r} Struct format code is: {1}"
         raise ValueError(errortext.format(value, formatstring))
 
-    if sys.version_info[0] > 2:
-        return str(
-            result, encoding="latin1"
-        )  # Convert types to make it Python3 compatible
+    # if sys.version_info[0] > 2:
+    #     return str(
+    #         result, encoding="latin1"
+    #     )  # Convert types to make it Python3 compatible
     return result
 
 
@@ -2471,8 +2471,12 @@ def _hexencode(bytestring, insert_spaces=False):
     # in order to have it Python 2.x and 3.x compatible
 
     byte_representions = []
-    for char in bytestring:
-        byte_representions.append("{0:02X}".format(ord(char)))
+    if isinstance(bytestring, str):
+        for char in bytestring:
+            byte_representions.append("{0:02X}".format(ord(char)))
+    elif isinstance(bytestring, bytes):
+        for char in bytestring:
+            byte_representions.append("{0:02X}".format(char))
     return separator.join(byte_representions).strip()
 
 
@@ -3094,8 +3098,12 @@ def _calculate_crc_string(inputstring):
     # Preload a 16-bit register with ones
     register = 0xFFFF
 
-    for char in inputstring:
-        register = (register >> 8) ^ _CRC16TABLE[(register ^ ord(char)) & 0xFF]
+    if isinstance(inputstring, str):
+        for char in inputstring:
+            register = (register >> 8) ^ _CRC16TABLE[(register ^ ord(char)) & 0xFF]
+    elif isinstance(inputstring, bytes):
+        for char in inputstring:
+            register = (register >> 8) ^ _CRC16TABLE[(register ^ char) & 0xFF]
 
     return _num_to_twobyte_string(register, lsb_first=True)
 
@@ -3524,10 +3532,10 @@ def _check_string(
             "The description should be a string. Given: {0!r}".format(description)
         )
 
-    if not isinstance(inputstring, str):
-        raise TypeError(
-            "The {0} should be a string. Given: {1!r}".format(description, inputstring)
-        )
+    # if not isinstance(inputstring, str):
+    #     raise TypeError(
+    #         "The {0} should be a string. Given: {1!r}".format(description, inputstring)
+    #     )
 
     if not isinstance(maxlength, (int, type(None))):
         raise TypeError(

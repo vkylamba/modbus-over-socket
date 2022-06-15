@@ -11,6 +11,7 @@ from loggers.iot import APILogger
 from loggers.thingsboard import ThingsBoardAPILogger
 from modbus.data_parser import DataParser as RTUDataParser
 from modbus.socket_minimal_modebus import Instrument as RTUInstrument
+from modbus.socket_minimal_modebus import _hexlify as hexify
 
 api_logger = APILogger()
 things_board_api_logger = ThingsBoardAPILogger()
@@ -35,7 +36,7 @@ class ClientHandler(object):
         data = self.connection.recv(20)
         if len(data) > 0:
             logger.info(f"Received from {self.client_address}: {data}")
-            data_hex = {":".join("{:02x}".format(c) for c in data)}
+            data_hex = hexify(data)
             logger.info(f"HEX format: {data_hex}")
             is_heartbeat = False
             try:
@@ -138,15 +139,13 @@ class ClientHandler(object):
         command_conf = self.registers[self.current_command_index]
         register_address = command_conf.get("reg_address")
         number_of_registers = command_conf.get("reg_count")
+        function_code = command_conf.get("functioncode", 3)
         data_to_send, func_code = self.instrument.read_registers(
             register_address,
-            number_of_registers
+            number_of_registers,
+            function_code=function_code
         )
-        if isinstance(data_to_send, str):
-            data_to_send = data_to_send.encode('utf-8')
-            data_hex = {":".join("{:02x}".format(c) for c in data_to_send)}
-        else:
-            data_hex = {":".join("{:02x}".format(ord(c)) for c in data_to_send)}
+        data_hex = hexify(data_to_send)
         logger.info(f"Sending to socket: {data_to_send}")
         logger.info(f"HEX format: {data_hex}")
         self.connection.sendall(data_to_send)

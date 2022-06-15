@@ -1,5 +1,5 @@
 import binascii
-from client_handler import ClientHandler
+from socket_client_handler import ClientHandler
 
 
 class FakeConnection:
@@ -49,8 +49,7 @@ if __name__ == "__main__":
 
     client_handler = ClientHandler(
         connection,
-        1024,
-        "device_conf_delta.json"
+        1024
     )
     while True:
         client_handler.serve()
