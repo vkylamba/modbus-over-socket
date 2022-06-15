@@ -6,9 +6,11 @@ class Convert:
     def float_to_decimal(self, f):  # float to decimal conversion
         return Decimal(f)  # just pass the float to decimal constructor
 
-    def signed_to_unsigned(self, integer_val):
-        # packed = struct.pack('>l', integer)  # Packing a long number.
-        return struct.unpack('>L', struct.pack('>l', integer_val))[0]
+    def signed_to_unsigned(self, data, size):
+        result = 0
+        for x in data[0:size]:
+            result = (result << 8) | x
+        return result
 
     def bit32_list_to_decimal(self, integer):
         xx = float(struct.unpack('!f', struct.pack(
@@ -67,37 +69,25 @@ class DataParser:
         return xx
 
     def parse(self, data, data_type):
-        numbytes = ord(data[0])
+        # numbytes = ord(data[0])
         data = [ord(data[i]) for i in range(1, len(data))]
 
         if data_type == 'UINT32':
-            return self.translator.bit32_list_to_decimal(data)
+            return self.translator.signed_to_unsigned(data, 4)
         elif data_type == 'UINT64':
-            return self.translator.bit64_list_to_decimal(data)
+            return self.translator.signed_to_unsigned(data, 8)
         elif data_type == 'UINT16':
-            return self.translator.bit16_list_to_decimal(data)
+            return self.translator.signed_to_unsigned(data, 2)
         elif data_type == 'UINT8':
-            return self.translator.bit8_list_to_decimal(data)
+            return self.translator.signed_to_unsigned(data, 1)
         elif data_type == 'INT32':
-            xx = self.translator.signed_to_unsigned(data)
-            return self.translator.bit32_list_to_decimal(xx)
+           return self.translator.signed_to_unsigned(data, 4)
         elif data_type == 'INT64':
-            xx = self.translator.signed_to_unsigned(data)
-            return self.translator.bit64_list_to_decimal(xx)
+            return self.translator.signed_to_unsigned(data, 8)
         elif data_type == 'INT16':
-            xx = self.translator.signed_to_unsigned(data)
-            return self.translator.bit16_list_to_decimal(xx)
+            return self.translator.signed_to_unsigned(data, 2)
         elif data_type == 'INT8':
-            xx = self.translator.signed_to_unsigned(data)
-            return self.translator.bit8_list_to_decimal(xx)
-        elif data_type == 'FP32':
-            return (data[0] + (data[1] << 16))
-        elif data_type == 'FP64':
-            return (data[0] + (data[1] << 32))
-        elif data_type == 'FP16':
-            return (data[0] + (data[1] << 8))
-        elif data_type == 'FP8':
-            return data[1]
+            return self.translator.signed_to_unsigned(data, 1)
         else:
             xx = "Unknown data type"
             return xx

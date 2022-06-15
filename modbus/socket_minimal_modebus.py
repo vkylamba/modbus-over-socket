@@ -1664,7 +1664,7 @@ def _extract_payload(response, slaveaddress, mode, functioncode):
     response_without_checksum = response[0 : (len(response) - number_of_checksum_bytes)]
     calculated_checksum = calculate_checksum(response_without_checksum)
 
-    if received_checksum != calculated_checksum:
+    if _hexlify(received_checksum) != _hexlify(calculated_checksum):
         template = (
             "Checksum error in {} mode: {!r} instead of {!r} . The response "
             + "is: {!r} (plain response: {!r})"

@@ -65,7 +65,8 @@ class ClientHandler(object):
 
     def start_communication(self):
         # Send commands
-        self.current_command_index = 0
+        if not hasattr(self, "current_command_index"):
+            self.current_command_index = 0
         self.data_buffer = b""
         self.send_data()
 
@@ -93,6 +94,7 @@ class ClientHandler(object):
             logger.info(f"Command response from client: {command_response}")
             self.process_command_data(command_response)
 
+        self.data_buffer = b""
         self.check_and_send_next_command()
 
     def load_configurations(self, conf_file):
@@ -130,8 +132,11 @@ class ClientHandler(object):
         else:
             diff = timedelta(seconds=21)
 
-        if diff > timedelta(seconds=20) and self.current_command_index < len(self.registers) - 1:
-            self.current_command_index += 1
+        if diff > timedelta(seconds=20):
+            if self.current_command_index < len(self.registers) - 1:
+                self.current_command_index += 1
+            else:
+                self.current_command_index = 0
             self.send_data()
             self.sent_time = datetime.now()
 
@@ -143,7 +148,7 @@ class ClientHandler(object):
         data_to_send, func_code = self.instrument.read_registers(
             register_address,
             number_of_registers,
-            function_code=function_code
+            functioncode=function_code
         )
         data_hex = hexify(data_to_send)
         logger.info(f"Sending to socket: {data_to_send}")
@@ -157,14 +162,14 @@ class ClientHandler(object):
             command_conf = self.registers[self.current_command_index]
             register_address = command_conf.get("reg_address")
             data_type = command_conf.get("data_type")
-            key_name = command_conf.get("key_name")
-            value = self.parser.parse(command_response, data_type, key_name)
-            datalogger.info(value)
-            try:
-                api_logger.log(value)
-            except Exception as e:
-                logger.error(e)
-            try:
-                things_board_api_logger.log(value)
-            except Exception as e:
-                logger.error(e)
+            key_name = command_conf.get("reg_description")
+            value = self.parser.parse(command_response, data_type)
+            datalogger.info(f"key: {key_name}, Register: {register_address}, Value: {value}")
+            # try:
+            #     api_logger.log(value)
+            # except Exception as e:
+            #     logger.error(e)
+            # try:
+            #     things_board_api_logger.log(value)
+            # except Exception as e:
+            #     logger.error(e)
