@@ -46,15 +46,15 @@ class ClientHandler(object):
                     data_str = data
                 else:
                     data_str = data.decode("utf-8")
-                if STATCON_HBD_INVERTER_HEARTBEAT in data_str:
+                if SHAKTI_SOLAR_VFD_HEARTBEAT in data_str:
+                    is_heartbeat = True
+                    self.load_configurations(CONF_FILES["SHAKTI_SOLAR_VFD_CONF"])
+                elif STATCON_HBD_INVERTER_HEARTBEAT in data_str:
                     is_heartbeat = True
                     self.load_configurations(CONF_FILES["STATCON_HBD_INVERTER_CONF"])
                 elif DELTA_RPI_INVERTER_HEARTBEAT in data_str:
                     is_heartbeat = True
                     self.load_configurations(CONF_FILES["DELTA_RPI_INVERTER_CONF"])
-                elif SHAKTI_SOLAR_VFD_HEARTBEAT in data_str:
-                    is_heartbeat = True
-                    self.load_configurations(CONF_FILES["SHAKTI_SOLAR_VFD_CONF"])
                 # Todo: remove this
                 elif "123456789abcdef" in data_str:
                     is_heartbeat = True
