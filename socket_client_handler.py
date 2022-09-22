@@ -2,6 +2,7 @@ import json
 from datetime import datetime, timedelta
 
 from constants import (DELTA_RPI, DELTA_RPI_INVERTER_HEARTBEAT, MODBUS_RTU,
+                       SHAKTI_SOLAR_VFD_HEARTBEAT,
                        STATCON_HBD_INVERTER_HEARTBEAT)
 from delta.data_parser import DeltaDataParser
 from delta.instrument import DeltaInstrument
@@ -17,6 +18,7 @@ api_logger = APILogger()
 things_board_api_logger = ThingsBoardAPILogger()
 
 CONF_FILES = {
+    "SHAKTI_SOLAR_VFD_CONF": "config-files/shakti_solar_vfd_conf.json",
     "STATCON_HBD_INVERTER_CONF": "config-files/statcon_hbd_conf_modbus.json",
     "DELTA_RPI_INVERTER_CONF": "config-files/device_conf_delta.json"
 }
@@ -50,10 +52,13 @@ class ClientHandler(object):
                 elif DELTA_RPI_INVERTER_HEARTBEAT in data_str:
                     is_heartbeat = True
                     self.load_configurations(CONF_FILES["DELTA_RPI_INVERTER_CONF"])
+                elif SHAKTI_SOLAR_VFD_HEARTBEAT in data_str:
+                    is_heartbeat = True
+                    self.load_configurations(CONF_FILES["SHAKTI_SOLAR_VFD_CONF"])
                 # Todo: remove this
                 elif "123456789abcdef" in data_str:
                     is_heartbeat = True
-                    self.load_configurations(CONF_FILES["STATCON_HBD_INVERTER_CONF"])
+                    self.load_configurations(CONF_FILES["SHAKTI_SOLAR_VFD_CONF"])
             except UnicodeDecodeError:
                 is_heartbeat = False
 

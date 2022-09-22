@@ -15,15 +15,17 @@ sock.bind(server_address)
 sock.listen(5)
 
 while True:
-    logger.info('waiting for a connection')
-    connection, client_address = sock.accept()
     try:
-        logger.info('client connected:', client_address)
+        logger.info('waiting for a connection')
+        connection, client_address = sock.accept()
+        logger.info(f'client connected: {client_address}')
         client_handler = ClientHandler(
             connection,
             client_address
         )
         while True:
             client_handler.serve()
+    except Exception as ex:
+        logger.exception(ex)
     finally:
         connection.close()
