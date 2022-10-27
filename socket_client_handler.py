@@ -73,7 +73,8 @@ class ClientHandler(object):
         if not hasattr(self, "current_command_index"):
             self.current_command_index = 0
         self.data_buffer = b""
-        self.send_data()
+        # self.send_data()
+        self.check_and_send_next_command()
 
     def handle_command_response(self):
         data_from_socket = self.data_buffer
