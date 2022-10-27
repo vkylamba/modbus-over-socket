@@ -1,4 +1,5 @@
 import json
+import os
 from datetime import datetime, timedelta
 
 from constants import (DELTA_RPI, DELTA_RPI_INVERTER_HEARTBEAT, MODBUS_RTU,
@@ -17,10 +18,12 @@ from modbus.socket_minimal_modebus import _hexlify as hexify
 api_logger = APILogger()
 things_board_api_logger = ThingsBoardAPILogger()
 
+SOCKET_SERVER_ROOT_PATH = os.environ.get('SOCKET_SERVER_ROOT_PATH', '')
+
 CONF_FILES = {
-    "SHAKTI_SOLAR_VFD_CONF": "config-files/shakti_solar_vfd_conf.json",
-    "STATCON_HBD_INVERTER_CONF": "config-files/statcon_hbd_conf_modbus.json",
-    "DELTA_RPI_INVERTER_CONF": "config-files/device_conf_delta.json"
+    "SHAKTI_SOLAR_VFD_CONF": os.path.join(SOCKET_SERVER_ROOT_PATH, "config-files/shakti_solar_vfd_conf.json"),
+    "STATCON_HBD_INVERTER_CONF": os.path.join(SOCKET_SERVER_ROOT_PATH, "config-files/statcon_hbd_conf_modbus.json"),
+    "DELTA_RPI_INVERTER_CONF": os.path.join(SOCKET_SERVER_ROOT_PATH, "config-files/device_conf_delta.json")
 }
 
 
@@ -65,6 +68,7 @@ class ClientHandler(object):
             self.data_buffer += data
             if is_heartbeat:
                 self.start_communication()
+                api_logger.log_heartbeat(data_str)
             else:
                 self.handle_command_response()
 
@@ -171,10 +175,11 @@ class ClientHandler(object):
             key_name = command_conf.get("reg_description")
             value = self.parser.parse(command_response, data_type)
             datalogger.info(f"key: {key_name}, Register: {register_address}, Value: {value}")
-            # try:
-            #     api_logger.log(value)
-            # except Exception as e:
-            #     logger.error(e)
+            api_logger.log({
+                "key": key_name,
+                "Register": register_address,
+                "Value": value
+            })
             # try:
             #     things_board_api_logger.log(value)
             # except Exception as e:

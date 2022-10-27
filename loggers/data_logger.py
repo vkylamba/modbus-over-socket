@@ -1,14 +1,16 @@
-import sys
 import logging
-from json import dumps
+import os
+import sys
 from collections import OrderedDict
+from json import dumps
 from logging import Formatter
 from logging.handlers import TimedRotatingFileHandler
 
 FORMAT = '%(asctime)-15s %(message)s'
 FORMATTER = logging.Formatter(FORMAT)
-LOG_FILE = "data.json"
 
+SOCKET_SERVER_ROOT_PATH = os.environ.get('SOCKET_SERVER_ROOT_PATH', '')
+LOG_FILE = os.path.join(SOCKET_SERVER_ROOT_PATH, "data.json")
 
 class JSONFormatter(Formatter):
     """
