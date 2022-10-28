@@ -29,7 +29,6 @@ class APILogger:
             print("Failed to post heartbeat data", ex)
 
     def log(self, data):
-        print("Input data is: ", data)
         try:
             url = f"{API_BASE}{DATA_PATH}"
             response = requests.post(

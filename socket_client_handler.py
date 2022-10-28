@@ -69,6 +69,7 @@ class ClientHandler(object):
             if is_heartbeat:
                 self.start_communication()
                 api_logger.log_heartbeat(data_str)
+                things_board_api_logger.log_heartbeat(data_str)
             else:
                 self.handle_command_response()
 
@@ -180,7 +181,8 @@ class ClientHandler(object):
                 "Register": register_address,
                 "Value": value
             })
-            # try:
-            #     things_board_api_logger.log(value)
-            # except Exception as e:
-            #     logger.error(e)
+            things_board_api_logger.log({
+                "key": key_name,
+                "Register": register_address,
+                "Value": value
+            })
