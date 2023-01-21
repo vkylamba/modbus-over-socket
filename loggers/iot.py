@@ -2,7 +2,7 @@ import os
 
 import requests
 
-API_BASE = 'https://data.okosengineering.com'
+API_BASE = 'https://iot.okosengineering.com'
 HEARTBEAT_PATH = '/api/heartbeat/'
 DEVICE_PATH = '/api/devices/'
 DATA_PATH = '/api/data/'
@@ -22,6 +22,9 @@ class APILogger:
                 url,
                 json={
                     "mac": dev_name
+                },
+                headers={
+                    'Device': self.device_token
                 }
             )
             if response.status_code not in [200, 201]:

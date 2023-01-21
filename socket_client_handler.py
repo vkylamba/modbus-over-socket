@@ -16,7 +16,7 @@ from modbus.socket_minimal_modebus import Instrument as RTUInstrument
 from modbus.socket_minimal_modebus import _hexlify as hexify
 
 api_logger = APILogger()
-things_board_api_logger = ThingsBoardAPILogger()
+# things_board_api_logger = ThingsBoardAPILogger()
 
 SOCKET_SERVER_ROOT_PATH = os.environ.get('SOCKET_SERVER_ROOT_PATH', '')
 
@@ -69,7 +69,7 @@ class ClientHandler(object):
             if is_heartbeat:
                 self.start_communication()
                 api_logger.log_heartbeat(data_str)
-                things_board_api_logger.log_heartbeat(data_str)
+                # things_board_api_logger.log_heartbeat(data_str)
             else:
                 self.handle_command_response()
 
@@ -183,8 +183,8 @@ class ClientHandler(object):
                 "register": register_address,
                 "value": value
             }, push_to_server)
-            things_board_api_logger.log({
-                "key": key_name,
-                "Register": register_address,
-                "Value": value
-            })
+            # things_board_api_logger.log({
+            #     "key": key_name,
+            #     "Register": register_address,
+            #     "Value": value
+            # })
