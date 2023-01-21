@@ -24,7 +24,7 @@ class ThingsBoardAPILogger:
                 }
             )
             if response.status_code not in [200, 201]:
-                print("Failed to post heartbeat data", response.status_code, response.text)
+                print("Failed to post heartbeat data to things board", response.status_code, response.text)
         except Exception as ex:
             print("Failed to post heartbeat data", ex)
 
@@ -38,7 +38,7 @@ class ThingsBoardAPILogger:
             )
             if response.status_code not in [200, 201]:
                 # print("Failed to post device data", response.status_code, response.text)
-                print("Failed to post device data", response.status_code)
+                print("Failed to post device data to things board", response.status_code)
         except Exception as ex:
             print("Failed to post device data", ex)
 

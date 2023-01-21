@@ -116,6 +116,7 @@ class ClientHandler(object):
         self.comm_protocol = data_dict.get('comm_protocol')
         self.target_address = data_dict.get("address")
         self.registers = data_dict.get("registers")
+        self.register_count = len(self.registers)
 
         self.connection_device = "fake_serial"
 
@@ -144,7 +145,7 @@ class ClientHandler(object):
             diff = timedelta(seconds=21)
 
         if diff > timedelta(seconds=20):
-            if self.current_command_index < len(self.registers) - 1:
+            if self.current_command_index < self.register_count - 1:
                 self.current_command_index += 1
             else:
                 self.current_command_index = 0
@@ -176,11 +177,12 @@ class ClientHandler(object):
             key_name = command_conf.get("reg_description")
             value = self.parser.parse(command_response, data_type)
             datalogger.info(f"key: {key_name}, Register: {register_address}, Value: {value}")
+            push_to_server = self.current_command_index == self.register_count - 1
             api_logger.log({
                 "key": key_name,
-                "Register": register_address,
-                "Value": value
-            })
+                "register": register_address,
+                "value": value
+            }, push_to_server)
             things_board_api_logger.log({
                 "key": key_name,
                 "Register": register_address,
