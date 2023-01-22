@@ -41,7 +41,7 @@ class APILogger:
         """
         if not push_to_server:
             key_name = data.get("key")
-            key_val = data.get("Value")
+            key_val = data.get("value")
             if key_name is not None:
                 self.payload[key_name] = key_val
         else:
