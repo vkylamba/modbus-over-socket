@@ -76,6 +76,8 @@ class DataParser:
             return self.translator.signed_to_unsigned(data, 4)
         elif data_type == 'UINT24':
             return self.translator.signed_to_unsigned(data, 3)
+        elif data_type == 'UINT48':
+            return self.translator.signed_to_unsigned(data, 6)
         elif data_type == 'UINT64':
             return self.translator.signed_to_unsigned(data, 8)
         elif data_type == 'UINT16':
