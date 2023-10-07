@@ -79,7 +79,7 @@ class DataParser:
             num1 = self.translator.signed_to_unsigned(data, 2)
             num2 = self.translator.signed_to_unsigned(data[2:4], 2)
             divider = self.translator.signed_to_unsigned(data[4:6], 2)
-            return (num1 * 10000 + num2) / divider
+            return (num1 * divider + num2) / divider
         elif data_type == 'UINT64':
             return self.translator.signed_to_unsigned(data, 8)
         elif data_type == 'UINT16':
