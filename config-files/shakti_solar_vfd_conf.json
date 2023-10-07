@@ -23,7 +23,7 @@
         {
             "tag_id": 1,
             "reg_address": 5000,
-            "data_type": "INT16",
+            "data_type": "UINT48(num,num,divider)",
             "scaling": 1,
             "miv_val": 0,
             "max_val": 0,
@@ -45,7 +45,7 @@
         {
             "tag_id": 1,
             "reg_address": 5008,
-            "data_type": "INT16",
+            "data_type": "UINT48(num,num,divider)",
             "scaling": 1,
             "miv_val": 0,
             "max_val": 0,
@@ -56,7 +56,7 @@
         {
             "tag_id": 1,
             "reg_address": 5012,
-            "data_type": "INT16",
+            "data_type": "UINT48(num,num,divider)",
             "scaling": 1,
             "miv_val": 0,
             "max_val": 0,
@@ -67,7 +67,7 @@
         {
             "tag_id": 1,
             "reg_address": 5016,
-            "data_type": "INT16",
+            "data_type": "UINT48(num,num,divider)",
             "scaling": 1,
             "miv_val": 0,
             "max_val": 0,
