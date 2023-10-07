@@ -34,7 +34,7 @@
         {
             "tag_id": 1,
             "reg_address": 5004,
-            "data_type": "UINT48",
+            "data_type": "UINT48(num,num,divider)",
             "scaling": 1,
             "miv_val": 0,
             "max_val": 0,

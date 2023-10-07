@@ -3,6 +3,7 @@ from decimal import Decimal
 
 
 class Convert:
+
     def float_to_decimal(self, f):  # float to decimal conversion
         return Decimal(f)  # just pass the float to decimal constructor
 
@@ -74,10 +75,11 @@ class DataParser:
 
         if data_type == 'UINT32':
             return self.translator.signed_to_unsigned(data, 4)
-        elif data_type == 'UINT24':
-            return self.translator.signed_to_unsigned(data, 3)
-        elif data_type == 'UINT48':
-            return self.translator.signed_to_unsigned(data, 6)
+        elif data_type == 'UINT48(num,num,divider)':
+            num1 = self.translator.signed_to_unsigned(data, 2)
+            num2 = self.translator.signed_to_unsigned(data[2:4], 2)
+            divider = self.translator.signed_to_unsigned(data[4:6], 2)
+            return (num1 * 10000 + num2) / divider
         elif data_type == 'UINT64':
             return self.translator.signed_to_unsigned(data, 8)
         elif data_type == 'UINT16':
