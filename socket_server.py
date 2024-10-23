@@ -31,7 +31,8 @@ def main():
         except Exception as ex:
             logger.exception(ex)
         finally:
-            connection.close()
+            if connection is not None:
+                connection.close()
 
 if __name__ == "__main__":
     try:

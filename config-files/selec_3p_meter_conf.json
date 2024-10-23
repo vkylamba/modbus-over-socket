@@ -11,13 +11,79 @@
    "registers":[
         {
             "tag_id": 1,
-            "reg_address": 38,
-            "data_type": "INT16",
+            "reg_address": 65043,
+            "data_type": "UINT32",
+            "scaling": 1,
+            "miv_val": 0,
+            "max_val": 0,
+            "reg_count": 4,
+            "reg_description": "serialNum",
+            "functioncode": 3
+        },
+        {
+            "tag_id": 1,
+            "reg_address": 65043,
+            "data_type": "UINT32",
+            "scaling": 1,
+            "miv_val": 0,
+            "max_val": 0,
+            "reg_count": 4,
+            "reg_description": "serialNum",
+            "functioncode": 3
+        },
+        {
+            "tag_id": 1,
+            "reg_address": 60416,
+            "data_type": "UINT8",
+            "scaling": 1,
+            "miv_val": 0,
+            "max_val": 0,
+            "reg_count": 1,
+            "reg_description": "devId",
+            "functioncode": 3
+        },
+        {
+            "tag_id": 1,
+            "reg_address": 60417,
+            "data_type": "UINT8",
+            "scaling": 1,
+            "miv_val": 0,
+            "max_val": 0,
+            "reg_count": 1,
+            "reg_description": "devVer",
+            "functioncode": 3
+        },
+        {
+            "tag_id": 1,
+            "reg_address": 60418,
+            "data_type": "UINT16",
             "scaling": 1,
             "miv_val": 0,
             "max_val": 0,
             "reg_count": 2,
-            "reg_description": "total_active_power",
+            "reg_description": "serialNum1",
+            "functioncode": 3
+        },
+        {
+            "tag_id": 1,
+            "reg_address": 60422,
+            "data_type": "UINT16",
+            "scaling": 1,
+            "miv_val": 0,
+            "max_val": 0,
+            "reg_count": 2,
+            "reg_description": "hardwareVer",
+            "functioncode": 3
+        },
+        {
+            "tag_id": 1,
+            "reg_address": 60428,
+            "data_type": "UINT16",
+            "scaling": 1,
+            "miv_val": 0,
+            "max_val": 0,
+            "reg_count": 2,
+            "reg_description": "fabricationDate",
             "functioncode": 3
         },
         {
@@ -28,7 +94,7 @@
             "miv_val": 0,
             "max_val": 0,
             "reg_count": 2,
-            "reg_description": "voltage_p1",
+            "reg_description": "voltageP1L",
             "functioncode": 3
         },
         {
@@ -39,7 +105,7 @@
             "miv_val": 0,
             "max_val": 0,
             "reg_count": 2,
-            "reg_description": "voltage_p2",
+            "reg_description": "voltageP2L",
             "functioncode": 3
         },
         {
@@ -50,7 +116,7 @@
             "miv_val": 0,
             "max_val": 0,
             "reg_count": 2,
-            "reg_description": "voltage_p3",
+            "reg_description": "voltageP3L",
             "functioncode": 3
         },
         {
@@ -61,7 +127,40 @@
             "miv_val": 0,
             "max_val": 0,
             "reg_count": 2,
-            "reg_description": "average_voltage",
+            "reg_description": "avgVoltagePL",
+            "functioncode": 3
+        },
+        {
+            "tag_id": 1,
+            "reg_address": 8,
+            "data_type": "INT16",
+            "scaling": 1,
+            "miv_val": 0,
+            "max_val": 0,
+            "reg_count": 2,
+            "reg_description": "voltageP1P2",
+            "functioncode": 3
+        },
+        {
+            "tag_id": 1,
+            "reg_address": 10,
+            "data_type": "INT16",
+            "scaling": 1,
+            "miv_val": 0,
+            "max_val": 0,
+            "reg_count": 2,
+            "reg_description": "voltageP2P3",
+            "functioncode": 3
+        },
+        {
+            "tag_id": 1,
+            "reg_address": 12,
+            "data_type": "INT16",
+            "scaling": 1,
+            "miv_val": 0,
+            "max_val": 0,
+            "reg_count": 2,
+            "reg_description": "voltageP3P1",
             "functioncode": 3
         },
         {
@@ -72,7 +171,7 @@
             "miv_val": 0,
             "max_val": 0,
             "reg_count": 2,
-            "reg_description": "current_p1",
+            "reg_description": "currentP1L",
             "functioncode": 3
         },
         {
@@ -83,7 +182,7 @@
             "miv_val": 0,
             "max_val": 0,
             "reg_count": 2,
-            "reg_description": "current_p2",
+            "reg_description": "currentP2L",
             "functioncode": 3
         },
         {
@@ -94,7 +193,7 @@
             "miv_val": 0,
             "max_val": 0,
             "reg_count": 2,
-            "reg_description": "current_p3",
+            "reg_description": "currentP3L",
             "functioncode": 3
         },
         {
@@ -105,7 +204,7 @@
             "miv_val": 0,
             "max_val": 0,
             "reg_count": 2,
-            "reg_description": "average_current",
+            "reg_description": "totalCurrentPL",
             "functioncode": 3
         },
         {
@@ -117,6 +216,50 @@
             "max_val": 0,
             "reg_count": 2,
             "reg_description": "frequency",
+            "functioncode": 3
+        },
+        {
+            "tag_id": 1,
+            "reg_address": 26,
+            "data_type": "INT16",
+            "scaling": 1,
+            "miv_val": 0,
+            "max_val": 0,
+            "reg_count": 2,
+            "reg_description": "activePowerP1L",
+            "functioncode": 3
+        },
+        {
+            "tag_id": 1,
+            "reg_address": 28,
+            "data_type": "INT16",
+            "scaling": 1,
+            "miv_val": 0,
+            "max_val": 0,
+            "reg_count": 2,
+            "reg_description": "activePowerP2L",
+            "functioncode": 3
+        },
+        {
+            "tag_id": 1,
+            "reg_address": 30,
+            "data_type": "INT16",
+            "scaling": 1,
+            "miv_val": 0,
+            "max_val": 0,
+            "reg_count": 2,
+            "reg_description": "activePowerP3L",
+            "functioncode": 3
+        },
+        {
+            "tag_id": 1,
+            "reg_address": 38,
+            "data_type": "INT16",
+            "scaling": 1,
+            "miv_val": 0,
+            "max_val": 0,
+            "reg_count": 2,
+            "reg_description": "totalActivePowerPL",
             "functioncode": 3
         }
     ]

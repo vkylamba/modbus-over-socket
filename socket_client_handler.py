@@ -1,5 +1,6 @@
 import json
 import os
+import time
 from datetime import datetime, timedelta
 
 from constants import (DELTA_RPI, DELTA_RPI_INVERTER_HEARTBEAT, MODBUS_RTU,
@@ -81,7 +82,7 @@ class ClientHandler(object):
         # Send commands
         if not hasattr(self, "current_command_index"):
             self.current_command_index = 0
-        self.data_buffer = b""
+            self.data_buffer = b""
         # self.send_data()
         self.check_and_send_next_command()
 
@@ -105,6 +106,7 @@ class ClientHandler(object):
         except Exception as e:
             logger.error("Failed parsing client response")
             logger.error(e)
+            self.data_buffer = b""
         else:
             logger.info(f"Command response from client: {command_response}")
             self.process_command_data(command_response)
@@ -147,6 +149,10 @@ class ClientHandler(object):
             diff = this_time - self.sent_time
         else:
             diff = timedelta(seconds=21)
+            
+        if diff < timedelta(seconds=5):
+            time.sleep(diff.seconds)
+            diff = 6
 
         if diff > timedelta(seconds=5):
             if self.current_command_index < self.register_count - 1:
@@ -180,8 +186,9 @@ class ClientHandler(object):
             data_type = command_conf.get("data_type")
             key_name = command_conf.get("reg_description")
             value = self.parser.parse(command_response, data_type)
+            logger.info(f"key: {key_name}, Register: {register_address}, Value: {value}")
             datalogger.info(f"key: {key_name}, Register: {register_address}, Value: {value}")
-            push_to_server = self.current_command_index == self.register_count - 1
+            push_to_server = self.current_command_index == self.register_count
             api_logger.log({
                 "key": key_name,
                 "register": register_address,
