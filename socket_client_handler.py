@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 
 from constants import (DELTA_RPI, DELTA_RPI_INVERTER_HEARTBEAT, MODBUS_RTU,
                        SHAKTI_SOLAR_VFD_HEARTBEAT,
-                       STATCON_HBD_INVERTER_HEARTBEAT)
+                       STATCON_HBD_INVERTER_HEARTBEAT, SELEC_3_PHASE_METER)
 from delta.data_parser import DeltaDataParser
 from delta.instrument import DeltaInstrument
 from loggers.console_logger import logger
@@ -23,7 +23,8 @@ SOCKET_SERVER_ROOT_PATH = os.environ.get('SOCKET_SERVER_ROOT_PATH', '')
 CONF_FILES = {
     "SHAKTI_SOLAR_VFD_CONF": os.path.join(SOCKET_SERVER_ROOT_PATH, "config-files/shakti_solar_vfd_conf.json"),
     "STATCON_HBD_INVERTER_CONF": os.path.join(SOCKET_SERVER_ROOT_PATH, "config-files/statcon_hbd_conf_modbus.json"),
-    "DELTA_RPI_INVERTER_CONF": os.path.join(SOCKET_SERVER_ROOT_PATH, "config-files/device_conf_delta.json")
+    "DELTA_RPI_INVERTER_CONF": os.path.join(SOCKET_SERVER_ROOT_PATH, "config-files/device_conf_delta.json"),
+    "SELEC_3_PHASE_METER_CONF": os.path.join(SOCKET_SERVER_ROOT_PATH, "config-files/selec_3p_meter_conf.json"),
 }
 
 
@@ -58,6 +59,9 @@ class ClientHandler(object):
                 elif DELTA_RPI_INVERTER_HEARTBEAT in data_str:
                     is_heartbeat = True
                     self.load_configurations(CONF_FILES["DELTA_RPI_INVERTER_CONF"])
+                elif SELEC_3_PHASE_METER in data_str:
+                    is_heartbeat = True
+                    self.load_configurations(CONF_FILES["SELEC_3_PHASE_METER_CONF"])
                 # Todo: remove this
                 elif "123456789abcdef" in data_str:
                     is_heartbeat = True
