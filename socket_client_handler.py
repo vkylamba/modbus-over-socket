@@ -20,7 +20,7 @@ api_logger = APILogger()
 # things_board_api_logger = ThingsBoardAPILogger()
 
 SOCKET_SERVER_ROOT_PATH = os.environ.get('SOCKET_SERVER_ROOT_PATH', '')
-COMMANDS_DELAY_SECONDS = os.environ.get('SOCKET_SERVER_ROOT_PATH', '5')
+COMMANDS_DELAY_SECONDS = os.environ.get('COMMANDS_DELAY_SECONDS', '5')
 COMMANDS_DELAY_SECONDS = int(COMMANDS_DELAY_SECONDS)
 
 CONF_FILES = {
