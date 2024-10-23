@@ -10,7 +10,7 @@ FORMAT = '%(asctime)-15s %(message)s'
 FORMATTER = logging.Formatter(FORMAT)
 
 SOCKET_SERVER_ROOT_PATH = os.environ.get('SOCKET_SERVER_ROOT_PATH', '')
-LOG_FILE = os.path.join(SOCKET_SERVER_ROOT_PATH, "data.json")
+LOG_FILE = os.path.join(SOCKET_SERVER_ROOT_PATH, "data/data.json")
 
 class JSONFormatter(Formatter):
     """
