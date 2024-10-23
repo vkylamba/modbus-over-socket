@@ -16,6 +16,7 @@ def main():
     sock.bind(server_address)
     sock.listen(5)
 
+    connection = None
     while True:
         try:
             logger.info('waiting for a connection')
