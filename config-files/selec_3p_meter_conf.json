@@ -55,6 +55,17 @@
         },
         {
             "tag_id": 1,
+            "reg_address": 30006,
+            "data_type": "INT16",
+            "scaling": 1,
+            "miv_val": 0,
+            "max_val": 0,
+            "reg_count": 1,
+            "reg_description": "average_voltage",
+            "functioncode": 3
+        },
+        {
+            "tag_id": 1,
             "reg_address": 30016,
             "data_type": "INT16",
             "scaling": 1,
@@ -84,6 +95,17 @@
             "max_val": 0,
             "reg_count": 1,
             "reg_description": "current_p3",
+            "functioncode": 3
+        },
+        {
+            "tag_id": 1,
+            "reg_address": 30022,
+            "data_type": "INT16",
+            "scaling": 1,
+            "miv_val": 0,
+            "max_val": 0,
+            "reg_count": 1,
+            "reg_description": "average_current",
             "functioncode": 3
         }
     ]

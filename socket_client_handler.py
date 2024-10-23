@@ -148,7 +148,7 @@ class ClientHandler(object):
         else:
             diff = timedelta(seconds=21)
 
-        if diff > timedelta(seconds=20):
+        if diff > timedelta(seconds=5):
             if self.current_command_index < self.register_count - 1:
                 self.current_command_index += 1
             else:
