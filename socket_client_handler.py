@@ -151,8 +151,7 @@ class ClientHandler(object):
             diff = timedelta(seconds=21)
             
         if diff < timedelta(seconds=5):
-            time.sleep(diff.seconds)
-            diff = 6
+            time.sleep(diff.seconds + 1)
 
         if diff > timedelta(seconds=5):
             if self.current_command_index < self.register_count - 1:
