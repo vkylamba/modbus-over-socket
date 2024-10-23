@@ -16,7 +16,7 @@
             "scaling": 1,
             "miv_val": 0,
             "max_val": 0,
-            "reg_count": 1,
+            "reg_count": 2,
             "reg_description": "run_hour",
             "functioncode": 3
         },
@@ -27,7 +27,7 @@
             "scaling": 1,
             "miv_val": 0,
             "max_val": 0,
-            "reg_count": 1,
+            "reg_count": 2,
             "reg_description": "voltage_p1",
             "functioncode": 3
         },
@@ -38,7 +38,7 @@
             "scaling": 1,
             "miv_val": 0,
             "max_val": 0,
-            "reg_count": 1,
+            "reg_count": 2,
             "reg_description": "voltage_p2",
             "functioncode": 3
         },
@@ -49,7 +49,7 @@
             "scaling": 1,
             "miv_val": 0,
             "max_val": 0,
-            "reg_count": 1,
+            "reg_count": 2,
             "reg_description": "voltage_p3",
             "functioncode": 3
         },
@@ -60,7 +60,7 @@
             "scaling": 1,
             "miv_val": 0,
             "max_val": 0,
-            "reg_count": 1,
+            "reg_count": 2,
             "reg_description": "average_voltage",
             "functioncode": 3
         },
@@ -71,7 +71,7 @@
             "scaling": 1,
             "miv_val": 0,
             "max_val": 0,
-            "reg_count": 1,
+            "reg_count": 2,
             "reg_description": "current_p1",
             "functioncode": 3
         },
@@ -82,7 +82,7 @@
             "scaling": 1,
             "miv_val": 0,
             "max_val": 0,
-            "reg_count": 1,
+            "reg_count": 2,
             "reg_description": "current_p2",
             "functioncode": 3
         },
@@ -93,7 +93,7 @@
             "scaling": 1,
             "miv_val": 0,
             "max_val": 0,
-            "reg_count": 1,
+            "reg_count": 2,
             "reg_description": "current_p3",
             "functioncode": 3
         },
@@ -104,8 +104,19 @@
             "scaling": 1,
             "miv_val": 0,
             "max_val": 0,
-            "reg_count": 1,
+            "reg_count": 2,
             "reg_description": "average_current",
+            "functioncode": 3
+        },
+        {
+            "tag_id": 1,
+            "reg_address": 30684,
+            "data_type": "STRING",
+            "scaling": 1,
+            "miv_val": 0,
+            "max_val": 0,
+            "reg_count": 8,
+            "reg_description": "serial_number",
             "functioncode": 3
         }
     ]
