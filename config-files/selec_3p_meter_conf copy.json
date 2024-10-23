@@ -11,18 +11,18 @@
    "registers":[
         {
             "tag_id": 1,
-            "reg_address": 38,
+            "reg_address": 30082,
             "data_type": "INT16",
             "scaling": 1,
             "miv_val": 0,
             "max_val": 0,
             "reg_count": 2,
-            "reg_description": "total_active_power",
+            "reg_description": "run_hour",
             "functioncode": 3
         },
         {
             "tag_id": 1,
-            "reg_address": 0,
+            "reg_address": 30000,
             "data_type": "INT16",
             "scaling": 1,
             "miv_val": 0,
@@ -33,7 +33,7 @@
         },
         {
             "tag_id": 1,
-            "reg_address": 2,
+            "reg_address": 30002,
             "data_type": "INT16",
             "scaling": 1,
             "miv_val": 0,
@@ -44,7 +44,7 @@
         },
         {
             "tag_id": 1,
-            "reg_address": 4,
+            "reg_address": 30004,
             "data_type": "INT16",
             "scaling": 1,
             "miv_val": 0,
@@ -55,7 +55,7 @@
         },
         {
             "tag_id": 1,
-            "reg_address": 6,
+            "reg_address": 30006,
             "data_type": "INT16",
             "scaling": 1,
             "miv_val": 0,
@@ -66,7 +66,7 @@
         },
         {
             "tag_id": 1,
-            "reg_address": 14,
+            "reg_address": 30016,
             "data_type": "INT16",
             "scaling": 1,
             "miv_val": 0,
@@ -77,7 +77,7 @@
         },
         {
             "tag_id": 1,
-            "reg_address": 16,
+            "reg_address": 30018,
             "data_type": "INT16",
             "scaling": 1,
             "miv_val": 0,
@@ -88,7 +88,7 @@
         },
         {
             "tag_id": 1,
-            "reg_address": 18,
+            "reg_address": 30020,
             "data_type": "INT16",
             "scaling": 1,
             "miv_val": 0,
@@ -99,7 +99,7 @@
         },
         {
             "tag_id": 1,
-            "reg_address": 22,
+            "reg_address": 30022,
             "data_type": "INT16",
             "scaling": 1,
             "miv_val": 0,
@@ -110,13 +110,13 @@
         },
         {
             "tag_id": 1,
-            "reg_address": 24,
-            "data_type": "INT16",
+            "reg_address": 30684,
+            "data_type": "STRING",
             "scaling": 1,
             "miv_val": 0,
             "max_val": 0,
-            "reg_count": 2,
-            "reg_description": "frequency",
+            "reg_count": 8,
+            "reg_description": "serial_number",
             "functioncode": 3
         }
     ]
