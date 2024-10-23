@@ -20,6 +20,8 @@ api_logger = APILogger()
 # things_board_api_logger = ThingsBoardAPILogger()
 
 SOCKET_SERVER_ROOT_PATH = os.environ.get('SOCKET_SERVER_ROOT_PATH', '')
+COMMANDS_DELAY_SECONDS = os.environ.get('SOCKET_SERVER_ROOT_PATH', '5')
+COMMANDS_DELAY_SECONDS = int(COMMANDS_DELAY_SECONDS)
 
 CONF_FILES = {
     "SHAKTI_SOLAR_VFD_CONF": os.path.join(SOCKET_SERVER_ROOT_PATH, "config-files/shakti_solar_vfd_conf.json"),
@@ -150,16 +152,16 @@ class ClientHandler(object):
         else:
             diff = timedelta(seconds=21)
             
-        if diff < timedelta(seconds=5):
+        if diff < timedelta(seconds=COMMANDS_DELAY_SECONDS):
+            logger.info(f"Sleeping for {diff.seconds + 1} seconds")
             time.sleep(diff.seconds + 1)
 
-        if diff > timedelta(seconds=5):
-            if self.current_command_index < self.register_count - 1:
-                self.current_command_index += 1
-            else:
-                self.current_command_index = 0
-            self.send_data()
-            self.sent_time = datetime.now()
+        if self.current_command_index < self.register_count - 1:
+            self.current_command_index += 1
+        else:
+            self.current_command_index = 0
+        self.send_data()
+        self.sent_time = datetime.now()
 
     def send_data(self):
         command_conf = self.registers[self.current_command_index]
