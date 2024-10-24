@@ -94,6 +94,8 @@ class ClientHandler(object):
             data_from_socket = bytearray(self.data_buffer, "utf-8")
 
         command_response = b''
+        
+        logger.info(f"Handling command response: {data_from_socket}")
 
         if not hasattr(self, "instrument"):
             logger.info(f"Received data: {self.data_buffer}")
