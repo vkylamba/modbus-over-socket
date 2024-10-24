@@ -1,8 +1,12 @@
+import os
 import socket
 import sys
 
 from loggers.console_logger import logger
 from socket_client_handler import ClientHandler
+
+SOCKET_PORT = os.environ.get('SOCKET_PORT', '8024')
+SOCKET_PORT = int(SOCKET_PORT)
 
 
 def main():
@@ -11,7 +15,7 @@ def main():
 
     # Bind the socket to the address given on the command line
     server_name = sys.argv[1]
-    server_address = (server_name, 8024)
+    server_address = (server_name, SOCKET_PORT)
     logger.info('starting up on %s port %s' % server_address)
     sock.bind(server_address)
     sock.listen(5)
