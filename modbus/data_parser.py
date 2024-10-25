@@ -1,6 +1,6 @@
 import struct
 from decimal import Decimal
-
+from loggers.console_logger import logger
 
 class Convert:
 
@@ -57,7 +57,11 @@ class Convert:
         return xx
 
     def byte_to_float(self, bytes):
-        return struct.unpack('f', bytes('\xdb\x0fI@\x0b\x01I4'))
+        return struct.unpack('f', bytes)
+    
+    def to_float(self, bytes_list):
+        float_value = struct.unpack('>f', bytes(bytes_list))[0]
+        return float_value
 
 
 class DataParser:
@@ -70,6 +74,7 @@ class DataParser:
         return xx
 
     def parse(self, data, data_type):
+        logger.info(f"Data parser input - data {data}, data_type: {data_type}")
         # numbytes = ord(data[0])
         data = [ord(data[i]) for i in range(1, len(data))]
 
@@ -96,6 +101,8 @@ class DataParser:
             return self.translator.signed_to_unsigned(data, 2)
         elif data_type == 'INT8':
             return self.translator.signed_to_unsigned(data, 1)
+        elif data_type == 'FLOAT':
+            return self.translator.to_float(data)
         else:
             xx = "Unknown data type"
             return xx
