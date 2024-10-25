@@ -3,30 +3,21 @@ import os
 import time
 from datetime import datetime, timedelta
 
-from constants import (DELTA_RPI, DELTA_RPI_INVERTER_HEARTBEAT, MODBUS_RTU,
-                       SHAKTI_SOLAR_VFD_HEARTBEAT,
-                       STATCON_HBD_INVERTER_HEARTBEAT, SELEC_3_PHASE_METER)
-from delta.data_parser import DeltaDataParser
-from delta.instrument import DeltaInstrument
+from constants import MODBUS_RTU, SELEC_3_PHASE_METER
 from loggers.console_logger import logger
 from loggers.data_logger import logger as datalogger
 from loggers.iot import APILogger
-from loggers.thingsboard import ThingsBoardAPILogger
 from modbus.data_parser import DataParser as RTUDataParser
 from modbus.socket_minimal_modebus import Instrument as RTUInstrument
 from modbus.socket_minimal_modebus import _hexlify as hexify
 
 api_logger = APILogger()
-# things_board_api_logger = ThingsBoardAPILogger()
 
 SOCKET_SERVER_ROOT_PATH = os.environ.get('SOCKET_SERVER_ROOT_PATH', '')
 COMMANDS_DELAY_SECONDS = os.environ.get('COMMANDS_DELAY_SECONDS', '5')
 COMMANDS_DELAY_SECONDS = int(COMMANDS_DELAY_SECONDS)
 
 CONF_FILES = {
-    "SHAKTI_SOLAR_VFD_CONF": os.path.join(SOCKET_SERVER_ROOT_PATH, "config-files/shakti_solar_vfd_conf.json"),
-    "STATCON_HBD_INVERTER_CONF": os.path.join(SOCKET_SERVER_ROOT_PATH, "config-files/statcon_hbd_conf_modbus.json"),
-    "DELTA_RPI_INVERTER_CONF": os.path.join(SOCKET_SERVER_ROOT_PATH, "config-files/device_conf_delta.json"),
     "SELEC_3_PHASE_METER_CONF": os.path.join(SOCKET_SERVER_ROOT_PATH, "config-files/selec_3p_meter_conf.json"),
 }
 
@@ -53,22 +44,9 @@ class ClientHandler(object):
                     data_str = data
                 else:
                     data_str = data.decode("utf-8")
-                if SHAKTI_SOLAR_VFD_HEARTBEAT in data_str:
-                    is_heartbeat = True
-                    self.load_configurations(CONF_FILES["SHAKTI_SOLAR_VFD_CONF"])
-                elif STATCON_HBD_INVERTER_HEARTBEAT in data_str:
-                    is_heartbeat = True
-                    self.load_configurations(CONF_FILES["STATCON_HBD_INVERTER_CONF"])
-                elif DELTA_RPI_INVERTER_HEARTBEAT in data_str:
-                    is_heartbeat = True
-                    self.load_configurations(CONF_FILES["DELTA_RPI_INVERTER_CONF"])
-                elif SELEC_3_PHASE_METER in data_str:
+                if SELEC_3_PHASE_METER in data_str:
                     is_heartbeat = True
                     self.load_configurations(CONF_FILES["SELEC_3_PHASE_METER_CONF"])
-                # Todo: remove this
-                elif "123456789abcdef" in data_str:
-                    is_heartbeat = True
-                    self.load_configurations(CONF_FILES["SHAKTI_SOLAR_VFD_CONF"])
             except UnicodeDecodeError:
                 is_heartbeat = False
 
@@ -130,14 +108,7 @@ class ClientHandler(object):
 
         self.connection_device = "fake_serial"
 
-        if self.comm_protocol == DELTA_RPI:
-            logger.info("DELTA_RPI device detected.")
-            self.instrument = DeltaInstrument(
-                "fake_serial",
-                self.target_address
-            )
-            self.parser = DeltaDataParser()
-        elif self.comm_protocol == MODBUS_RTU:
+        if self.comm_protocol == MODBUS_RTU:
             self.instrument = RTUInstrument(
                 "fake_serial",
                 self.target_address
@@ -197,8 +168,3 @@ class ClientHandler(object):
                 "register": register_address,
                 "value": value
             }, push_to_server)
-            # things_board_api_logger.log({
-            #     "key": key_name,
-            #     "Register": register_address,
-            #     "Value": value
-            # })
