@@ -24,7 +24,7 @@ def init_connection():
 def log_to_db(device, key_name, register_address, value):
     # create table modbusdata (deviceId varchar(255), time timestamp, key varchar(255), register varchar(255), value varchar(255));
     global curs_obj
-    time = datetime.utcnow().strftime("%Y-%m-%dT%HH:%MM:%SSZ")
+    time = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
     try:
         if curs_obj is None:
             curs_obj = init_connection()
