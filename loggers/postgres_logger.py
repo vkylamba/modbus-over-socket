@@ -36,7 +36,6 @@ def log_to_db(device, key_name, register_address, value):
         print("log_to_db error")
         print(ex)
         curs_obj = None
-        raise ex
 
 
 if __name__ == "__main__":
