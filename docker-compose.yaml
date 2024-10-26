@@ -7,7 +7,18 @@ services:
     ports:
       - 8024:8024
 
+  db:
+    image: postgres:12.1-alpine
+    volumes:
+      - db:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    env_file:
+      - .env
+
 volumes:
+  db:
+    driver: local
   app-python-site-packages:
     driver: local
   app-usr-local-bin:
