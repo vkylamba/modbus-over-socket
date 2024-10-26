@@ -8,18 +8,29 @@ services:
       - 8024:8024
 
   db:
-    image: postgres:12.1-alpine
-    volumes:
-      - db:/var/lib/postgresql/data
+    image: postgres
+    container_name: local_pgdb
+    restart: always
     ports:
-      - 5432:5432
-    env_file:
-      - .env
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin-root-pass
+    volumes:
+      - local_pgdata:/var/lib/postgresql/data
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin4_container
+    restart: always
+    ports:
+      - "8888:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: user-name@domain-name.com
+      PGADMIN_DEFAULT_PASSWORD: strong-password
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
 
 volumes:
-  db:
-    driver: local
-  app-python-site-packages:
-    driver: local
-  app-usr-local-bin:
-    driver: local
+  local_pgdata:
+  pgadmin-data:
