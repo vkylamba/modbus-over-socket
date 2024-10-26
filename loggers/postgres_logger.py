@@ -1,5 +1,6 @@
 import os
 import psycopg2
+from datetime import datetime
 
 DATABASE_HOST = os.environ.get('DATABASE_HOST', '')
 DATABASE_NAME = os.environ.get('DATABASE_NAME', 'iotmodbus')
@@ -22,17 +23,20 @@ def init_connection():
 
 def log_to_db(device, key_name, register_address, value):
     # create table modbusdata (deviceId varchar(255), time timestamp, key varchar(255), register varchar(255), value varchar(255));
+    global curs_obj
+    time = datetime.utcnow().strftime("%Y-%m-%dT%HH:%MM:%SSZ")
     try:
         if curs_obj is None:
             curs_obj = init_connection()
         curs_obj.execute(f"""
             INSERT INTO modbusdata(deviceId, time, key, register, value)
-            VALUES({device}, {str(key_name)}, {str(register_address)}, {str(value)});
+            VALUES({device}, {str(time)}, {str(key_name)}, {str(register_address)}, {str(value)});
         """)
     except Exception as ex:
         print("log_to_db error")
         print(ex)
         curs_obj = None
+        raise ex
 
 
 if __name__ == "__main__":
