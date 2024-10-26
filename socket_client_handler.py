@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from constants import MODBUS_RTU, SELEC_3_PHASE_METER
 from loggers.console_logger import logger
 from loggers.data_logger import logger as datalogger
+from loggers.postgres_logger import log_to_db
 from loggers.iot import APILogger
 from modbus.data_parser import DataParser as RTUDataParser
 from modbus.socket_minimal_modebus import Instrument as RTUInstrument
@@ -47,6 +48,7 @@ class ClientHandler(object):
                 if SELEC_3_PHASE_METER in data_str:
                     is_heartbeat = True
                     self.load_configurations(CONF_FILES["SELEC_3_PHASE_METER_CONF"])
+                    self.device = SELEC_3_PHASE_METER
             except UnicodeDecodeError:
                 is_heartbeat = False
 
@@ -162,6 +164,7 @@ class ClientHandler(object):
             value = self.parser.parse(command_response, data_type)
             logger.info(f"key: {key_name}, Register: {register_address}, Value: {value}")
             datalogger.info(f"key: {key_name}, Register: {register_address}, Value: {value}")
+            log_to_db(self.device, key_name, register_address, value)
             push_to_server = self.current_command_index == self.register_count
             api_logger.log({
                 "key": key_name,
