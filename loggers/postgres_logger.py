@@ -30,7 +30,7 @@ def log_to_db(device, key_name, register_address, value):
             curs_obj = init_connection()
         curs_obj.execute(f"""
             INSERT INTO modbusdata(deviceId, time, key, register, value)
-            VALUES({device}, {str(time)}, {str(key_name)}, {str(register_address)}, {str(value)});
+            VALUES('{device}', '{str(time)}', '{str(key_name)}', '{str(register_address)}', '{str(value)}');
         """)
     except Exception as ex:
         print("log_to_db error")
