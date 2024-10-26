@@ -7,9 +7,10 @@ DATABASE_NAME = os.environ.get('DATABASE_NAME', 'iotmodbus')
 DATABASE_USER = os.environ.get('DATABASE_USER', '')
 DATABASE_PASSWORD = os.environ.get('DATABASE_PASSWORD', '')
 
-curs_obj = None
+con, curs_obj = None, None
 
 def init_connection():
+    global con
     con = psycopg2.connect(
         database=DATABASE_NAME,
         user=DATABASE_USER,
@@ -17,6 +18,7 @@ def init_connection():
         host=DATABASE_HOST,
         port= '5432'
     )
+    con.autocommit = True
     curs_obj = con.cursor()
     return curs_obj
 
@@ -32,6 +34,7 @@ def log_to_db(device, key_name, register_address, value):
             INSERT INTO modbusdata(deviceId, time, key, register, value)
             VALUES('{device}', '{str(time)}', '{str(key_name)}', '{str(register_address)}', '{str(value)}');
         """)
+        con.commit()
     except Exception as ex:
         print("log_to_db error")
         print(ex)
