@@ -14,6 +14,7 @@ from loggers.iot import APILogger
 from loggers.thingsboard import ThingsBoardAPILogger
 from modbus.data_parser import DataParser as RTUDataParser
 from modbus.socket_minimal_modebus import Instrument as RTUInstrument
+from modbus.socket_minimal_modebus import _hexlify as hexify
 
 api_logger = APILogger()
 things_board_api_logger = ThingsBoardAPILogger()
@@ -65,20 +66,17 @@ class ClientHandler(object):
         if len(self.data_buffer) < 4:
             return
 
-        data_from_socket = self.data_buffer
-
-        data_from_socket = ''.join(chr(x) for x in data_from_socket)
-
-        logger.info(f"Received from device: {data_from_socket}")
-        # print(data_from_socket.decode("utf-16"))
-        data_hex = {":".join("{:02x}".format(ord(c)) for c in data_from_socket)}
+        data_from_device = self.data_buffer
+        # data_from_device = ''.join(chr(x) for x in data_from_device)       
+        logger.info(f"Received from device: {data_from_device}")
+        data_hex = hexify(data_from_device)
         logger.info(f"HEX format: {data_hex}")
 
         command_response = b''
         try:
             command_response = self.instrument.get_command_response(
-                data_from_socket,
-                self.current_func_code
+                data_from_device,
+                getattr(self, "current_func_code", 3)
             )
         except Exception as e:
             logger.error("Failed parsing client response")
@@ -108,7 +106,7 @@ class ClientHandler(object):
         if self.connection_type == "serial" and self.connection_device is not None:
             self.connection = serial.Serial(
                 self.connection_device,
-                timeout=0.5,
+                timeout=2.5,
                 baudrate=self.baudrate,
                 bytesize=self.data_bits,
                 parity=self.parity,
@@ -155,11 +153,7 @@ class ClientHandler(object):
             number_of_registers,
             functioncode=functioncode
         )
-        if isinstance(data_to_send, str):
-            data_hex = {":".join("{:02x}".format(ord(c)) for c in data_to_send)}
-            data_to_send = bytearray(data_to_send, "utf-8")
-        else:
-            data_hex = {":".join("{:02x}".format(ord(c)) for c in data_to_send.decode("utf-8"))}
+        data_hex = hexify(data_to_send)
         logger.info(f"Sending to serial: {data_to_send}")
         logger.info(f"HEX format: {data_hex}")
         self.connection.flush()
