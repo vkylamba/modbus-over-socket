@@ -36,6 +36,23 @@ Mona config template:
 - Default logger is `json_store` (writes to `data/data.json`).
 - Optional external logger example:
   - `iot.py` with `options.api_key_env` set to `DEVICE_API_KEY`.
+	- Per-device key mapping example: `"dev-bln": "DEVICE_API_KEY_DEV_BLN"`.
+
+Per-device IoT key mapping using env vars:
+- In device config `device_api_key_env_map`, set identifier -> env var name, for example:
+
+```json
+"device_api_key_env_map": {
+	"dev-bln": "DEVICE_API_KEY_DEV_BLN"
+}
+```
+
+- Set that env var in runtime (docker-compose uses passthrough):
+
+```bash
+export DEVICE_API_KEY_DEV_BLN="<your-device-token>"
+docker-compose up -d --build
+```
 
 Serial device config template:
 - Use `config-files/templates/serial_device_template.json` for function code `4` (input registers).

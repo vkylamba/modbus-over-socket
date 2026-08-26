@@ -43,6 +43,7 @@ class ClientHandler(object):
     def __init__(self, config_file):
         self.data_buffer = b""
         self.config_device_identifier = None
+        self._iot_resolution_cache = {}
         self.configured_loggers = []
         self._configure_output_loggers(DEFAULT_LOGGER_CONFIG)
         self.load_configurations(config_file)
@@ -94,16 +95,23 @@ class ClientHandler(object):
                     "default_api_key_env",
                     options.get("api_key_env", "DEVICE_API_KEY")
                 )
+                device_key_map = options.get("device_api_key_env_map", {})
+                if not isinstance(device_key_map, dict):
+                    device_key_map = {}
                 configured_loggers.append({
                     "name": "iot.py",
                     "kind": "iot",
                     "options": {
                         "default_api_key_env": default_api_key_env,
-                        "device_api_key_env_map": options.get("device_api_key_env_map", {}),
+                        "device_api_key_env_map": device_key_map,
                         "device_key_fields": options.get("device_key_fields", ["dev", "device_id", "device"]),
                     },
                     "instance": APILogger(api_key_env=default_api_key_env),
                 })
+                logger.info(
+                    "Enabled iot logger with %s per-device key mappings",
+                    len(device_key_map)
+                )
                 continue
 
             if normalized_name == "thingsboard":
@@ -146,6 +154,30 @@ class ClientHandler(object):
         return None
 
     def _resolve_iot_device_token(self, logger_entry, payload):
+        def _resolve_secret_value(raw_value):
+            if not isinstance(raw_value, str):
+                return None, "none"
+            value = raw_value.strip()
+            if not value:
+                return None, "none"
+
+            env_token = os.environ.get(value)
+            if env_token:
+                return env_token, "env"
+
+            return value, "literal"
+
+        def _record_resolution(identifier, source):
+            cache_key = identifier or "default"
+            if self._iot_resolution_cache.get(cache_key) == source:
+                return
+            self._iot_resolution_cache[cache_key] = source
+            logger.info(
+                "IoT token resolved for '%s' using source '%s'",
+                cache_key,
+                source
+            )
+
         options = logger_entry.get("options", {})
         if not isinstance(options, dict):
             options = {}
@@ -160,16 +192,22 @@ class ClientHandler(object):
 
         per_device_env_map = options.get("device_api_key_env_map", {})
         if isinstance(per_device_env_map, dict) and device_identifier:
-            env_name = per_device_env_map.get(device_identifier)
-            if isinstance(env_name, str) and env_name:
-                token = os.environ.get(env_name)
-                if token:
-                    return token
+            configured_value = per_device_env_map.get(device_identifier)
+            token, source = _resolve_secret_value(configured_value)
+            if token:
+                _record_resolution(device_identifier, f"per_device_{source}")
+                return token
 
         default_env = options.get("default_api_key_env", "DEVICE_API_KEY")
         if not isinstance(default_env, str) or not default_env:
             default_env = "DEVICE_API_KEY"
-        return os.environ.get(default_env)
+        token, source = _resolve_secret_value(default_env)
+        if token:
+            _record_resolution(device_identifier, f"default_{source}")
+            return token
+
+        _record_resolution(device_identifier, "missing")
+        return None
 
     def _log_measurement_with_configured_loggers(self, measurement, push_to_server=False):
         for logger_entry in self.configured_loggers:

@@ -480,6 +480,130 @@ def create_web_app(registry):
         with open(path, "r", encoding="utf-8") as fp:
             return fp.read()
 
+    def _is_env_var_name(value):
+        if not isinstance(value, str):
+            return False
+        text = value.strip()
+        if not text:
+            return False
+        if text != text.upper():
+            return False
+        if not (text[0].isalpha() or text[0] == "_"):
+            return False
+        return all(ch.isalnum() or ch == "_" for ch in text)
+
+    def _device_identifiers_for_hint(device):
+        identifiers = []
+
+        for key in ["device_id", "device_name", "mac_address"]:
+            value = device.get(key)
+            if isinstance(value, str) and value.strip():
+                identifiers.append(value.strip())
+
+        payload = device.get("last_json_payload")
+        if isinstance(payload, dict):
+            for key in ["device_id", "dev", "device", "mac"]:
+                value = payload.get(key)
+                if isinstance(value, str) and value.strip():
+                    identifiers.append(value.strip())
+
+            nested_payload = payload.get("payload")
+            if isinstance(nested_payload, dict):
+                for key in ["device_id", "dev", "device", "mac"]:
+                    value = nested_payload.get(key)
+                    if isinstance(value, str) and value.strip():
+                        identifiers.append(value.strip())
+
+        deduped = []
+        seen = set()
+        for item in identifiers:
+            if item in seen:
+                continue
+            seen.add(item)
+            deduped.append(item)
+        return deduped
+
+    def _build_iot_hint(template_payload_text, device):
+        hint = {
+            "error": None,
+            "items": [],
+            "all_present": True,
+        }
+
+        if not template_payload_text:
+            return hint
+
+        try:
+            config = json.loads(template_payload_text)
+        except json.JSONDecodeError:
+            hint["error"] = "Template JSON is invalid; cannot verify IoT key mapping."
+            return hint
+
+        if not isinstance(config, dict):
+            hint["error"] = "Template JSON must be an object."
+            return hint
+
+        logger_entries = config.get("loggers")
+        if not isinstance(logger_entries, list):
+            return hint
+
+        known_identifiers = _device_identifiers_for_hint(device)
+        for logger_entry in logger_entries:
+            if not isinstance(logger_entry, dict):
+                continue
+            if logger_entry.get("enabled", True) is False:
+                continue
+
+            logger_name = str(logger_entry.get("name", "")).strip().lower()
+            if logger_name not in ["iot", "iot.py"]:
+                continue
+
+            options = logger_entry.get("options", {})
+            if not isinstance(options, dict):
+                options = {}
+
+            key_fields = options.get("device_key_fields", ["dev", "device_id", "device"])
+            if not isinstance(key_fields, list) or len(key_fields) == 0:
+                key_fields = ["dev", "device_id", "device"]
+
+            mapping = options.get("device_api_key_env_map", {})
+            if not isinstance(mapping, dict):
+                mapping = {}
+
+            selected_identifier = None
+            selected_value = None
+            for identifier in known_identifiers:
+                if identifier in mapping:
+                    selected_identifier = identifier
+                    selected_value = mapping.get(identifier)
+                    break
+
+            source = "default"
+            if selected_value is None:
+                selected_value = options.get("default_api_key_env", options.get("api_key_env", "DEVICE_API_KEY"))
+            else:
+                source = f"mapped:{selected_identifier}"
+
+            selected_value = str(selected_value or "").strip()
+            is_env = _is_env_var_name(selected_value)
+            if is_env:
+                present = bool(os.environ.get(selected_value))
+                key_label = selected_value
+            else:
+                present = bool(selected_value)
+                key_label = "literal token"
+
+            hint["items"].append({
+                "source": source,
+                "key_label": key_label,
+                "is_env": is_env,
+                "present": present,
+                "selected_identifier": selected_identifier,
+            })
+            hint["all_present"] = hint["all_present"] and present
+
+        return hint
+
     @app.route("/")
     def device_list():
         devices = registry.list_devices()
@@ -532,6 +656,7 @@ def create_web_app(registry):
                 template_payload = _load_template_text(selected_template)
             except Exception:
                 template_payload = "{}"
+        iot_hint = _build_iot_hint(template_payload, device)
 
         if request.method == "POST":
             form_action = request.form.get("form_action", "send_command")
@@ -550,6 +675,7 @@ def create_web_app(registry):
             }
             selected_template = request.form.get("template_name", selected_template).strip()
             template_payload = request.form.get("template_payload", template_payload)
+            iot_hint = _build_iot_hint(template_payload, device)
 
             if "device_type" in request.form:
                 try:
@@ -615,7 +741,8 @@ def create_web_app(registry):
                     mona_topics=mona_topics,
                     available_templates=available_templates,
                     selected_template=selected_template,
-                    template_payload=template_payload
+                    template_payload=template_payload,
+                    iot_hint=iot_hint
                 )
 
             try:
@@ -718,7 +845,8 @@ def create_web_app(registry):
             mona_topics=mona_topics,
             available_templates=available_templates,
             selected_template=selected_template,
-            template_payload=template_payload
+            template_payload=template_payload,
+            iot_hint=iot_hint
         )
 
     return app

@@ -1,6 +1,11 @@
 services:
   app:
     build: .
+    environment:
+      DEVICE_API_KEY: ${DEVICE_API_KEY:-}
+      DEVICE_API_KEY_DEV_BLN: ${DEVICE_API_KEY_DEV_BLN:-}
+      DEVICE_API_KEY_MONA_DEV_001: ${DEVICE_API_KEY_MONA_DEV_001:-}
+      DEVICE_API_KEY_MONA_DEVICE_ID_001: ${DEVICE_API_KEY_MONA_DEVICE_ID_001:-}
     volumes:
       - .:/app
     ports:
