@@ -2,7 +2,7 @@ import os
 
 import requests
 
-API_BASE = 'https://iot.okosengineering.com'
+API_BASE = 'http://iot.okosengineering.com'
 HEARTBEAT_PATH = '/api/heartbeat/'
 DEVICE_PATH = '/api/devices/'
 DATA_PATH = '/api/data/'
