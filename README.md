@@ -18,6 +18,7 @@ Features:
 - View per-device active logger list and per-device RX/TX flow stats
 - Inspect recent inbound and outbound device traffic in a scrollable panel
 - Load a template from `config-files/templates`, edit JSON, and deploy runtime configuration to a connected device from the device detail page
+- Deployed configs are persisted in `config-files/deployed/` and auto-applied on reconnect/restart when the device identifier matches (device_id/dev/device/mac/name or client IP fallback)
 - Build either a structured JSON command payload or a topic + plain-text payload
 - Auto-generate `command_id` values on every send
 - Send command payloads on the existing TCP device connection

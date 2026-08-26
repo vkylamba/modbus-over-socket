@@ -77,8 +77,92 @@ class ClientHandler(object):
             "last_rx_at": None,
             "last_tx_at": None,
         }
+        self._persisted_config_resolver = None
+        self._last_persisted_config_identifier = None
+        self._last_persisted_config_signature = None
         self.configured_loggers = []
         self._configure_output_loggers(DEFAULT_LOGGER_CONFIG)
+
+    def set_persisted_config_resolver(self, resolver):
+        self._persisted_config_resolver = resolver
+
+    def _config_signature(self, config_dict):
+        try:
+            return json.dumps(config_dict, sort_keys=True)
+        except Exception:
+            return str(config_dict)
+
+    def _known_device_identifiers(self):
+        identifiers = []
+
+        if isinstance(self.client_address, tuple) and len(self.client_address) >= 1:
+            host = self.client_address[0]
+            if isinstance(host, str) and host.strip():
+                identifiers.append(host.strip())
+
+        if isinstance(self.device_name, str) and self.device_name.strip():
+            identifiers.append(self.device_name.strip())
+
+        if isinstance(self.mac_address, str) and self.mac_address.strip():
+            identifiers.append(self.mac_address.strip())
+
+        payload = self.last_json_payload
+        if isinstance(payload, dict):
+            for key in ["device_id", "dev", "device", "mac"]:
+                value = payload.get(key)
+                if isinstance(value, str) and value.strip():
+                    identifiers.append(value.strip())
+
+            nested_payload = payload.get("payload")
+            if isinstance(nested_payload, dict):
+                for key in ["device_id", "dev", "device", "mac"]:
+                    value = nested_payload.get(key)
+                    if isinstance(value, str) and value.strip():
+                        identifiers.append(value.strip())
+
+        deduped = []
+        seen = set()
+        for item in identifiers:
+            if item in seen:
+                continue
+            seen.add(item)
+            deduped.append(item)
+        return deduped
+
+    def _maybe_apply_persisted_configuration(self):
+        if self._persisted_config_resolver is None:
+            return
+
+        identifiers = self._known_device_identifiers()
+        for identifier in identifiers:
+            try:
+                persisted_config = self._persisted_config_resolver(identifier)
+            except Exception as ex:
+                logger.error("Failed resolving persisted config for '%s': %s", identifier, ex)
+                continue
+
+            if not isinstance(persisted_config, dict):
+                continue
+
+            config_signature = self._config_signature(persisted_config)
+            if (
+                self._last_persisted_config_identifier == identifier and
+                self._last_persisted_config_signature == config_signature
+            ):
+                return
+
+            try:
+                self.apply_configuration_dict(persisted_config)
+                self._last_persisted_config_identifier = identifier
+                self._last_persisted_config_signature = config_signature
+                logger.info(
+                    "Applied persisted configuration for identifier '%s' on client %s",
+                    identifier,
+                    self.client_address
+                )
+                return
+            except Exception as ex:
+                logger.error("Failed applying persisted config for '%s': %s", identifier, ex)
 
     def _payload_size_bytes(self, payload, payload_text=None):
         if isinstance(payload, (bytes, bytearray)):
@@ -537,6 +621,7 @@ class ClientHandler(object):
             return True
 
         self.record_received_payload(self.data_buffer, parsed_json=payload)
+        self._maybe_apply_persisted_configuration()
         self._maybe_send_mona_heartbeat_for_bad_status_time(payload)
         self._log_payload_with_configured_loggers(payload)
         logger.info(f"Stored JSON payload from {self.client_address}")
@@ -558,6 +643,7 @@ class ClientHandler(object):
             data_hex = hexify(data)
             logger.info(f"HEX format: {data_hex}")
             self.record_received_payload(data)
+            self._maybe_apply_persisted_configuration()
 
             self.data_buffer += data
             if self.handle_json_payload():

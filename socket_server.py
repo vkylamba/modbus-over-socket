@@ -24,6 +24,8 @@ ADMIN_UI_PASSWORD = os.environ.get('ADMIN_UI_PASSWORD', 'admin')
 STALE_DEVICE_SECONDS = int(os.environ.get('STALE_DEVICE_SECONDS', '90'))
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 DEVICE_TEMPLATES_DIR = os.path.join(PROJECT_ROOT, "config-files", "templates")
+DEPLOYED_CONFIGS_DIR = os.path.join(PROJECT_ROOT, "config-files", "deployed")
+DEPLOYED_CONFIG_INDEX_FILE = os.path.join(DEPLOYED_CONFIGS_DIR, "index.json")
 
 DEVICE_LIST_TEMPLATE = "device_list.html"
 DEVICE_DETAIL_TEMPLATE = "device_detail.html"
@@ -35,12 +37,79 @@ class DeviceRegistry:
         self._lock = threading.Lock()
         self._handlers = {}
         self._next_device_id = 1
+        self._deployed_config_index = {}
+        self._ensure_deployed_config_storage()
+        self._load_deployed_config_index()
+
+    def _ensure_deployed_config_storage(self):
+        os.makedirs(DEPLOYED_CONFIGS_DIR, exist_ok=True)
+
+    def _load_deployed_config_index(self):
+        self._deployed_config_index = {}
+        if not os.path.isfile(DEPLOYED_CONFIG_INDEX_FILE):
+            return
+
+        try:
+            with open(DEPLOYED_CONFIG_INDEX_FILE, "r", encoding="utf-8") as fp:
+                loaded = json.load(fp)
+        except Exception as ex:
+            logger.error("Failed loading deployed config index: %s", ex)
+            return
+
+        if not isinstance(loaded, dict):
+            return
+
+        for identifier, file_name in loaded.items():
+            if not isinstance(identifier, str) or not identifier.strip():
+                continue
+            if not isinstance(file_name, str) or not file_name.strip():
+                continue
+            self._deployed_config_index[identifier.strip()] = os.path.basename(file_name.strip())
+
+    def _save_deployed_config_index_locked(self):
+        with open(DEPLOYED_CONFIG_INDEX_FILE, "w", encoding="utf-8") as fp:
+            json.dump(self._deployed_config_index, fp, indent=2, sort_keys=True)
+
+    def _safe_identifier(self, value):
+        text = str(value or "").strip()
+        if not text:
+            return "device"
+        safe = "".join(ch if (ch.isalnum() or ch in ["-", "_", "."]) else "_" for ch in text)
+        safe = safe.strip("._")
+        return safe or "device"
+
+    def _identifiers_for_handler(self, handler, fallback_identifier):
+        snapshot = handler.get_ui_snapshot()
+        identifiers = [str(fallback_identifier).strip()]
+        identifiers.extend(self._logical_identifiers_from_snapshot(snapshot))
+
+        client_address = getattr(handler, "client_address", None)
+        if isinstance(client_address, tuple) and len(client_address) >= 1:
+            host = client_address[0]
+            if isinstance(host, str) and host.strip():
+                identifiers.append(host.strip())
+
+        for key in ["device_name", "mac_address"]:
+            value = snapshot.get(key)
+            if isinstance(value, str) and value.strip():
+                identifiers.append(value.strip())
+
+        deduped = []
+        seen = set()
+        for item in identifiers:
+            if not item or item in seen:
+                continue
+            seen.add(item)
+            deduped.append(item)
+        return deduped
 
     def add_handler(self, handler):
         with self._lock:
             device_id = str(self._next_device_id)
             self._next_device_id += 1
             self._handlers[device_id] = handler
+            if hasattr(handler, "set_persisted_config_resolver"):
+                handler.set_persisted_config_resolver(self.get_persisted_configuration)
             return device_id
 
     def remove_handler(self, device_id):
@@ -173,7 +242,49 @@ class DeviceRegistry:
         if not hasattr(handler, "apply_configuration_dict"):
             raise ValueError("handler does not support configuration deployment")
 
+        if not isinstance(configuration, dict):
+            raise ValueError("Configuration must be a JSON object")
+
+        identifiers = self._identifiers_for_handler(handler, device_id)
+        primary_identifier = identifiers[0] if identifiers else str(device_id)
+        file_name = f"{self._safe_identifier(primary_identifier)}.json"
+        config_path = os.path.join(DEPLOYED_CONFIGS_DIR, file_name)
+
+        with open(config_path, "w", encoding="utf-8") as fp:
+            json.dump(configuration, fp, indent=2, sort_keys=True)
+
+        with self._lock:
+            for identifier in identifiers:
+                self._deployed_config_index[identifier] = file_name
+            self._save_deployed_config_index_locked()
+
         handler.apply_configuration_dict(configuration)
+
+    def get_persisted_configuration(self, device_identifier):
+        identifier = str(device_identifier or "").strip()
+        if not identifier:
+            return None
+
+        with self._lock:
+            file_name = self._deployed_config_index.get(identifier)
+
+        if not file_name:
+            return None
+
+        config_path = os.path.join(DEPLOYED_CONFIGS_DIR, os.path.basename(file_name))
+        if not os.path.isfile(config_path):
+            return None
+
+        try:
+            with open(config_path, "r", encoding="utf-8") as fp:
+                loaded = json.load(fp)
+        except Exception as ex:
+            logger.error("Failed reading persisted config for '%s': %s", identifier, ex)
+            return None
+
+        if not isinstance(loaded, dict):
+            return None
+        return loaded
 
 
 def build_mona_topics(device_name):
