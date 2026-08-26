@@ -47,31 +47,97 @@ class DeviceRegistry:
 
     def get_handler(self, device_id):
         with self._lock:
-            return self._handlers.get(str(device_id))
+            handler = self._handlers.get(str(device_id))
+            if handler is not None:
+                return handler
+
+            target_id = str(device_id).strip()
+            if not target_id:
+                return None
+
+            entries = self._build_device_entries_locked()
+            matched_entry = next(
+                (entry for entry in entries if entry.get("device_id") == target_id),
+                None
+            )
+            if matched_entry is None:
+                return None
+            internal_device_id = matched_entry.get("internal_device_id")
+            return self._handlers.get(str(internal_device_id))
+
+    def _logical_identifiers_from_snapshot(self, snapshot):
+        identifiers = []
+
+        for key in ["device_name", "mac_address"]:
+            value = snapshot.get(key)
+            if isinstance(value, str) and value.strip():
+                identifiers.append(value.strip())
+
+        payload = snapshot.get("last_json_payload")
+        if isinstance(payload, dict):
+            for key in ["device_id", "dev", "device", "mac"]:
+                value = payload.get(key)
+                if isinstance(value, str) and value.strip():
+                    identifiers.append(value.strip())
+
+            nested_payload = payload.get("payload")
+            if isinstance(nested_payload, dict):
+                for key in ["device_id", "dev", "device", "mac"]:
+                    value = nested_payload.get(key)
+                    if isinstance(value, str) and value.strip():
+                        identifiers.append(value.strip())
+
+        deduped = []
+        seen = set()
+        for item in identifiers:
+            if item not in seen:
+                seen.add(item)
+                deduped.append(item)
+        return deduped
+
+    def _preferred_device_id_from_snapshot(self, snapshot, fallback_id):
+        logical_ids = self._logical_identifiers_from_snapshot(snapshot)
+        if logical_ids:
+            return logical_ids[0], logical_ids
+        return str(fallback_id), []
+
+    def _device_rank(self, device_entry):
+        last_update = device_entry.get("last_update_at") or ""
+        connected_at = device_entry.get("connected_at") or ""
+        return (last_update, connected_at)
+
+    def _build_device_entries_locked(self):
+        grouped_devices = {}
+        for internal_device_id, handler in self._handlers.items():
+            snapshot = handler.get_ui_snapshot()
+            display_id, logical_ids = self._preferred_device_id_from_snapshot(snapshot, internal_device_id)
+            entry = {
+                "device_id": display_id,
+                "internal_device_id": str(internal_device_id),
+                "logical_device_ids": logical_ids,
+                "client_address": handler.client_address,
+                "device_name": snapshot.get("device_name"),
+                "device_type": snapshot.get("device_type"),
+                "mac_address": snapshot.get("mac_address"),
+                "last_update_at": snapshot.get("last_update_at"),
+                "last_topic": snapshot.get("last_topic"),
+                "connected_at": snapshot.get("connected_at"),
+                "active_loggers": snapshot.get("active_loggers", []),
+                "data_flow": snapshot.get("data_flow", {})
+            }
+
+            existing = grouped_devices.get(display_id)
+            if existing is None or self._device_rank(entry) >= self._device_rank(existing):
+                grouped_devices[display_id] = entry
+
+        return list(grouped_devices.values())
 
     def list_devices(self):
         with self._lock:
-            devices = []
-            for device_id, handler in self._handlers.items():
-                snapshot = handler.get_ui_snapshot()
-                devices.append({
-                    "device_id": device_id,
-                    "client_address": handler.client_address,
-                    "device_name": snapshot.get("device_name"),
-                    "device_type": snapshot.get("device_type"),
-                    "mac_address": snapshot.get("mac_address"),
-                    "last_update_at": snapshot.get("last_update_at"),
-                    "last_topic": snapshot.get("last_topic"),
-                    "connected_at": snapshot.get("connected_at"),
-                    "active_loggers": snapshot.get("active_loggers", []),
-                    "data_flow": snapshot.get("data_flow", {})
-                })
-            return devices
+            return self._build_device_entries_locked()
 
     def get_device_snapshot(self, device_id):
-        with self._lock:
-            handler = self._handlers.get(str(device_id))
-
+        handler = self.get_handler(device_id)
         if handler is None:
             return None
 
