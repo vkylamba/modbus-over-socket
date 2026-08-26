@@ -3,6 +3,7 @@ import os
 import requests
 
 API_BASE = 'https://demo.thingsboard.io/api/v1/'
+LOG_PREFIX = '[ThingsBoardLogger]'
 
 
 class ThingsBoardAPILogger:
@@ -16,6 +17,10 @@ class ThingsBoardAPILogger:
 
     def log_heartbeat(self, dev_name):
         if not self.device_token:
+            print(
+                f"{LOG_PREFIX} Skipping ThingsBoard heartbeat post: device token is missing. "
+                f"Expected env key '{self.device_key_env}' to be set."
+            )
             return
         try:
             url = f"{API_BASE}{self._data_path()}"
@@ -27,12 +32,16 @@ class ThingsBoardAPILogger:
                 }
             )
             if response.status_code not in [200, 201]:
-                print("Failed to post heartbeat data to things board", response.status_code, response.text)
+                print(f"{LOG_PREFIX} Failed to post heartbeat data to things board", response.status_code, response.text)
         except Exception as ex:
-            print("Failed to post heartbeat data", ex)
+            print(f"{LOG_PREFIX} Failed to post heartbeat data", ex)
 
     def log(self, data):
         if not self.device_token:
+            print(
+                f"{LOG_PREFIX} Skipping ThingsBoard data post: device token is missing. "
+                f"Expected env key '{self.device_key_env}' to be set."
+            )
             return
         try:
             data["type"] = "data"
@@ -43,9 +52,9 @@ class ThingsBoardAPILogger:
             )
             if response.status_code not in [200, 201]:
                 # print("Failed to post device data", response.status_code, response.text)
-                print("Failed to post device data to things board", response.status_code)
+                print(f"{LOG_PREFIX} Failed to post device data to things board", response.status_code)
         except Exception as ex:
-            print("Failed to post device data", ex)
+            print(f"{LOG_PREFIX} Failed to post device data", ex)
 
 
 if __name__ == "__main__":
