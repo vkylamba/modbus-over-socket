@@ -378,10 +378,10 @@
                             <div class="status warn">{{ iot_hint.error }}</div>
                         {% endif %}
 
-                        {% if iot_hint and iot_hint.items %}
+                        {% if iot_hint and iot_hint.get('items') %}
                             <div class="status {% if not iot_hint.all_present %}warn{% endif %}">
                                 <strong>IoT Key Hint</strong><br>
-                                {% for item in iot_hint.items %}
+                                {% for item in iot_hint.get('items') %}
                                     Source: {{ item.source }} | Key: {{ item.key_label }} | Status:
                                     {% if item.present %}present{% else %}missing{% endif %}
                                     {% if item.selected_identifier %}(matched {{ item.selected_identifier }}){% endif %}
