@@ -350,6 +350,16 @@ class ClientHandler(object):
         _record_resolution(device_identifier, "missing")
         return None
 
+    def _is_modbus_topic_payload(self, payload):
+        if not isinstance(payload, dict):
+            return False
+
+        topic = payload.get("topic")
+        if not isinstance(topic, str):
+            return False
+
+        return "modbus" in topic.lower()
+
     def _log_payload_with_configured_loggers(self, payload):
         for logger_entry in self.configured_loggers:
             logger_kind = logger_entry["kind"]
@@ -362,15 +372,18 @@ class ClientHandler(object):
                     logger_instance.log(dict(payload))
                 elif logger_kind == "iot" and isinstance(payload, dict):
                     logger_instance.set_device_token(self._resolve_iot_device_token(logger_entry, payload))
-                    for key_name, key_value in payload.items():
-                        if isinstance(key_value, (dict, list, tuple)):
-                            continue
-                        logger_instance.log({
-                            "key": key_name,
-                            "register": key_name,
-                            "value": key_value,
-                        }, push_to_server=False)
-                    logger_instance.log({}, push_to_server=True)
+                    if self._is_modbus_topic_payload(payload):
+                        for key_name, key_value in payload.items():
+                            if isinstance(key_value, (dict, list, tuple)):
+                                continue
+                            logger_instance.log({
+                                "key": key_name,
+                                "register": key_name,
+                                "value": key_value,
+                            }, push_to_server=False)
+                        logger_instance.log({}, push_to_server=True)
+                    else:
+                        logger_instance.log_json(dict(payload))
             except Exception as ex:
                 logger.error("Failed logger '%s': %s", logger_entry["name"], ex)
 

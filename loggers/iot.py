@@ -74,6 +74,25 @@ class APILogger:
             except Exception as ex:
                 print("Failed to post device data", ex)
 
+    def log_json(self, payload):
+        if not self.device_token:
+            return
+        if not isinstance(payload, dict):
+            return
+        try:
+            url = f"{API_BASE}{DATA_PATH}"
+            response = requests.post(
+                url,
+                json=payload,
+                headers={
+                    'Device': self.device_token
+                }
+            )
+            if response.status_code not in [200, 201]:
+                print("Failed to post json payload to IoT-E", response.status_code)
+        except Exception as ex:
+            print("Failed to post json payload", ex)
+
 
 if __name__ == "__main__":
     logger = APILogger()
