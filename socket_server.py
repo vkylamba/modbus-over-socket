@@ -316,25 +316,53 @@ def create_web_app(registry):
             "wait_for_response": True
         }
 
+    def _template_search_dirs():
+        candidates = [
+            DEVICE_TEMPLATES_DIR,
+            os.path.join(os.getcwd(), "config-files", "templates"),
+            "/app/config-files/templates",
+        ]
+        deduped = []
+        seen = set()
+        for path in candidates:
+            normalized = os.path.abspath(path)
+            if normalized in seen:
+                continue
+            seen.add(normalized)
+            deduped.append(normalized)
+        return deduped
+
     def _list_template_files():
-        try:
-            file_names = []
-            for name in os.listdir(DEVICE_TEMPLATES_DIR):
-                if name.endswith(".json"):
-                    file_names.append(name)
-            file_names.sort()
-            return file_names
-        except FileNotFoundError:
-            return []
+        collected = []
+        seen_names = set()
+        for directory in _template_search_dirs():
+            try:
+                names = os.listdir(directory)
+            except FileNotFoundError:
+                continue
+
+            for name in names:
+                if not name.endswith(".json"):
+                    continue
+                if name in seen_names:
+                    continue
+                seen_names.add(name)
+                collected.append(name)
+
+        collected.sort()
+        if not collected:
+            logger.warning("No device templates found in search paths: %s", _template_search_dirs())
+        return collected
 
     def _template_path(template_name):
         safe_name = os.path.basename(template_name or "")
         if not safe_name.endswith(".json"):
             raise ValueError("Template must be a .json file")
-        path = os.path.join(DEVICE_TEMPLATES_DIR, safe_name)
-        if not os.path.isfile(path):
-            raise FileNotFoundError(f"Template not found: {safe_name}")
-        return path
+        for base_dir in _template_search_dirs():
+            path = os.path.join(base_dir, safe_name)
+            if os.path.isfile(path):
+                return path
+        raise FileNotFoundError(f"Template not found: {safe_name}")
 
     def _load_template_text(template_name):
         path = _template_path(template_name)
