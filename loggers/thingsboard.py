@@ -2,20 +2,23 @@ import os
 
 import requests
 
-API_KEY = os.environ.get('THINGS_BOARD_DEVICE_KEY')
-
 API_BASE = 'https://demo.thingsboard.io/api/v1/'
-DATA_PATH = f'{API_KEY}/telemetry'
 
 
 class ThingsBoardAPILogger:
 
-    def __init__(self):
-        self.device_token = API_KEY
+    def __init__(self, device_key_env='THINGS_BOARD_DEVICE_KEY'):
+        self.device_key_env = device_key_env
+        self.device_token = os.environ.get(self.device_key_env)
+
+    def _data_path(self):
+        return f'{self.device_token}/telemetry'
 
     def log_heartbeat(self, dev_name):
+        if not self.device_token:
+            return
         try:
-            url = f"{API_BASE}{DATA_PATH}"
+            url = f"{API_BASE}{self._data_path()}"
             response = requests.post(
                 url,
                 json={
@@ -29,9 +32,11 @@ class ThingsBoardAPILogger:
             print("Failed to post heartbeat data", ex)
 
     def log(self, data):
+        if not self.device_token:
+            return
         try:
             data["type"] = "data"
-            url = f"{API_BASE}{DATA_PATH}"
+            url = f"{API_BASE}{self._data_path()}"
             response = requests.post(
                 url,
                 json=data

@@ -19,8 +19,16 @@ from modbus.data_parser import DataParser as RTUDataParser
 from modbus.socket_minimal_modebus import Instrument as RTUInstrument
 from modbus.socket_minimal_modebus import _hexlify as hexify
 
-api_logger = APILogger()
-# things_board_api_logger = ThingsBoardAPILogger()
+DEFAULT_LOGGER_CONFIG = [{"name": "json_store"}]
+SUPPORTED_LOGGER_NAMES = {
+    "json_store": "json_store",
+    "data_logger": "json_store",
+    "data_logger.py": "json_store",
+    "iot": "iot",
+    "iot.py": "iot",
+    "thingsboard": "thingsboard",
+    "thingsboard.py": "thingsboard",
+}
 
 SOCKET_SERVER_ROOT_PATH = os.environ.get('SOCKET_SERVER_ROOT_PATH', '')
 COMMANDS_DELAY_SECONDS = os.environ.get('COMMANDS_DELAY_SECONDS', '5')
@@ -60,6 +68,216 @@ class ClientHandler(object):
         self.recent_received = deque(maxlen=100)
         self.recent_sent = deque(maxlen=100)
         self.last_auto_heartbeat_at = 0.0
+        self.connected_at = self._timestamp()
+        self.data_flow = {
+            "rx_messages": 0,
+            "tx_messages": 0,
+            "rx_bytes": 0,
+            "tx_bytes": 0,
+            "last_rx_at": None,
+            "last_tx_at": None,
+        }
+        self.configured_loggers = []
+        self._configure_output_loggers(DEFAULT_LOGGER_CONFIG)
+
+    def _payload_size_bytes(self, payload, payload_text=None):
+        if isinstance(payload, (bytes, bytearray)):
+            return len(payload)
+        if payload_text is None:
+            payload_text = self._coerce_text(payload)
+        return len(payload_text.encode("utf-8", errors="replace"))
+
+    def _active_logger_names(self):
+        return [entry.get("name") for entry in self.configured_loggers if entry.get("name")]
+
+    def _normalize_logger_entries(self, logger_entries):
+        if not isinstance(logger_entries, list) or len(logger_entries) == 0:
+            return list(DEFAULT_LOGGER_CONFIG)
+
+        normalized_entries = []
+        for item in logger_entries:
+            if isinstance(item, str):
+                normalized_entries.append({"name": item})
+            elif isinstance(item, dict):
+                normalized_entries.append(item)
+
+        if len(normalized_entries) == 0:
+            return list(DEFAULT_LOGGER_CONFIG)
+        return normalized_entries
+
+    def _configure_output_loggers(self, logger_entries):
+        normalized_entries = self._normalize_logger_entries(logger_entries)
+        configured_loggers = []
+
+        for logger_conf in normalized_entries:
+            if logger_conf.get("enabled", True) is False:
+                continue
+
+            logger_name = str(logger_conf.get("name", "")).strip().lower()
+            normalized_name = SUPPORTED_LOGGER_NAMES.get(logger_name)
+            if normalized_name is None:
+                logger.warning("Unknown logger '%s' in config; skipping", logger_name)
+                continue
+
+            if normalized_name == "json_store":
+                configured_loggers.append({
+                    "name": "json_store",
+                    "kind": "json_store",
+                    "instance": None,
+                })
+                continue
+
+            options = logger_conf.get("options", {})
+            if not isinstance(options, dict):
+                options = {}
+
+            if normalized_name == "iot":
+                default_api_key_env = options.get(
+                    "default_api_key_env",
+                    options.get("api_key_env", "DEVICE_API_KEY")
+                )
+                configured_loggers.append({
+                    "name": "iot.py",
+                    "kind": "iot",
+                    "options": {
+                        "default_api_key_env": default_api_key_env,
+                        "device_api_key_env_map": options.get("device_api_key_env_map", {}),
+                        "device_key_fields": options.get("device_key_fields", ["dev", "device_id", "device"]),
+                    },
+                    "instance": APILogger(api_key_env=default_api_key_env),
+                })
+                continue
+
+            if normalized_name == "thingsboard":
+                device_key_env = options.get("device_key_env", "THINGS_BOARD_DEVICE_KEY")
+                if not os.environ.get(device_key_env):
+                    logger.warning(
+                        "Skipping thingsboard logger because env var '%s' is not set",
+                        device_key_env
+                    )
+                    continue
+                configured_loggers.append({
+                    "name": "thingsboard.py",
+                    "kind": "thingsboard",
+                    "instance": ThingsBoardAPILogger(device_key_env=device_key_env),
+                })
+
+        if len(configured_loggers) == 0:
+            configured_loggers = [{
+                "name": "json_store",
+                "kind": "json_store",
+                "instance": None,
+            }]
+
+        self.configured_loggers = configured_loggers
+        logger.info(
+            "Configured output loggers: %s",
+            [entry["name"] for entry in self.configured_loggers]
+        )
+
+    def _safe_json_loads(self, value):
+        if not isinstance(value, str):
+            return None
+        try:
+            decoded = json.loads(value)
+        except json.JSONDecodeError:
+            return None
+        return decoded if isinstance(decoded, dict) else None
+
+    def _extract_device_identifier(self, payload, preferred_fields=None):
+        if not isinstance(payload, dict):
+            return None
+
+        fields = preferred_fields or ["dev", "device_id", "device"]
+        for field_name in fields:
+            field_val = payload.get(field_name)
+            if isinstance(field_val, str) and field_val.strip():
+                return field_val.strip()
+
+        nested_payload = payload.get("payload")
+        nested_dict = nested_payload if isinstance(nested_payload, dict) else self._safe_json_loads(nested_payload)
+        if isinstance(nested_dict, dict):
+            for field_name in fields:
+                field_val = nested_dict.get(field_name)
+                if isinstance(field_val, str) and field_val.strip():
+                    return field_val.strip()
+
+        return None
+
+    def _resolve_iot_device_token(self, logger_entry, payload):
+        options = logger_entry.get("options", {})
+        if not isinstance(options, dict):
+            options = {}
+
+        key_fields = options.get("device_key_fields", ["dev", "device_id", "device"])
+        if not isinstance(key_fields, list) or len(key_fields) == 0:
+            key_fields = ["dev", "device_id", "device"]
+
+        device_identifier = self._extract_device_identifier(payload, preferred_fields=key_fields)
+        per_device_env_map = options.get("device_api_key_env_map", {})
+        if isinstance(per_device_env_map, dict) and device_identifier:
+            env_name = per_device_env_map.get(device_identifier)
+            if isinstance(env_name, str) and env_name:
+                token = os.environ.get(env_name)
+                if token:
+                    return token
+
+        default_env = options.get("default_api_key_env", "DEVICE_API_KEY")
+        if not isinstance(default_env, str) or not default_env:
+            default_env = "DEVICE_API_KEY"
+        return os.environ.get(default_env)
+
+    def _log_payload_with_configured_loggers(self, payload):
+        for logger_entry in self.configured_loggers:
+            logger_kind = logger_entry["kind"]
+            logger_instance = logger_entry["instance"]
+
+            try:
+                if logger_kind == "json_store":
+                    datalogger.info(payload)
+                elif logger_kind == "thingsboard" and isinstance(payload, dict):
+                    logger_instance.log(dict(payload))
+                elif logger_kind == "iot" and isinstance(payload, dict):
+                    logger_instance.set_device_token(self._resolve_iot_device_token(logger_entry, payload))
+                    for key_name, key_value in payload.items():
+                        if isinstance(key_value, (dict, list, tuple)):
+                            continue
+                        logger_instance.log({
+                            "key": key_name,
+                            "register": key_name,
+                            "value": key_value,
+                        }, push_to_server=False)
+                    logger_instance.log({}, push_to_server=True)
+            except Exception as ex:
+                logger.error("Failed logger '%s': %s", logger_entry["name"], ex)
+
+    def _log_measurement_with_configured_loggers(self, measurement, push_to_server=False):
+        for logger_entry in self.configured_loggers:
+            logger_kind = logger_entry["kind"]
+            logger_instance = logger_entry["instance"]
+
+            try:
+                if logger_kind == "json_store":
+                    datalogger.info(measurement)
+                elif logger_kind == "iot":
+                    logger_instance.set_device_token(self._resolve_iot_device_token(logger_entry, measurement))
+                    logger_instance.log(measurement, push_to_server=push_to_server)
+                elif logger_kind == "thingsboard":
+                    logger_instance.log(dict(measurement))
+            except Exception as ex:
+                logger.error("Failed logger '%s': %s", logger_entry["name"], ex)
+
+    def _log_heartbeat_with_configured_loggers(self, dev_name):
+        for logger_entry in self.configured_loggers:
+            logger_kind = logger_entry["kind"]
+            logger_instance = logger_entry["instance"]
+            if logger_kind not in ["iot", "thingsboard"]:
+                continue
+
+            try:
+                logger_instance.log_heartbeat(dev_name)
+            except Exception as ex:
+                logger.error("Failed logger heartbeat '%s': %s", logger_entry["name"], ex)
 
     def _timestamp(self):
         return datetime.utcnow().isoformat() + "Z"
@@ -196,6 +414,7 @@ class ClientHandler(object):
 
     def record_received_payload(self, payload, parsed_json=None):
         payload_text = self._coerce_text(payload)
+        payload_size = self._payload_size_bytes(payload, payload_text)
         event = {
             "timestamp": self._timestamp(),
             "text": payload_text
@@ -205,12 +424,16 @@ class ClientHandler(object):
             self.last_update_at = event["timestamp"]
             self.last_data_text = payload_text
             self.recent_received.append(event)
+            self.data_flow["rx_messages"] += 1
+            self.data_flow["rx_bytes"] += payload_size
+            self.data_flow["last_rx_at"] = event["timestamp"]
             if parsed_json is not None:
                 self.last_json_payload = parsed_json
                 self._update_device_metadata_from_json(parsed_json)
 
     def record_sent_payload(self, payload):
         payload_text = self._coerce_text(payload)
+        payload_size = self._payload_size_bytes(payload, payload_text)
         event = {
             "timestamp": self._timestamp(),
             "text": payload_text
@@ -222,6 +445,9 @@ class ClientHandler(object):
 
         with self.state_lock:
             self.recent_sent.append(event)
+            self.data_flow["tx_messages"] += 1
+            self.data_flow["tx_bytes"] += payload_size
+            self.data_flow["last_tx_at"] = event["timestamp"]
             if parsed_json is not None:
                 self._update_device_metadata_from_json(parsed_json)
 
@@ -236,6 +462,9 @@ class ClientHandler(object):
                 "mac_address": self.mac_address,
                 "last_topic": self.last_topic,
                 "last_json_payload": self.last_json_payload,
+                "connected_at": self.connected_at,
+                "active_loggers": self._active_logger_names(),
+                "data_flow": dict(self.data_flow),
                 "recent_received": list(self.recent_received),
                 "recent_sent": list(self.recent_sent)
             }
@@ -309,7 +538,7 @@ class ClientHandler(object):
 
         self.record_received_payload(self.data_buffer, parsed_json=payload)
         self._maybe_send_mona_heartbeat_for_bad_status_time(payload)
-        datalogger.info(payload)
+        self._log_payload_with_configured_loggers(payload)
         logger.info(f"Stored JSON payload from {self.client_address}")
         self.data_buffer = b""
         return True
@@ -366,7 +595,7 @@ class ClientHandler(object):
 
             if is_heartbeat:
                 self.start_communication()
-                api_logger.log_heartbeat(data_str)
+                self._log_heartbeat_with_configured_loggers(data_str)
                 # things_board_api_logger.log_heartbeat(data_str)
             else:
                 self.handle_command_response()
@@ -416,8 +645,9 @@ class ClientHandler(object):
         self.connection_type = data_dict.get('connection_type', 'socket')
         self.comm_protocol = data_dict.get('comm_protocol')
         self.target_address = data_dict.get("address")
-        self.registers = data_dict.get("registers")
+        self.registers = data_dict.get("registers") or []
         self.register_count = len(self.registers)
+        self._configure_output_loggers(data_dict.get("loggers"))
 
         self.connection_device = "fake_serial"
 
@@ -434,6 +664,9 @@ class ClientHandler(object):
                 self.target_address
             )
             self.parser = RTUDataParser()
+        elif self.comm_protocol in [None, "", "json"]:
+            self.instrument = None
+            self.parser = None
         else:
             raise Exception(f"Invalid comm protocol {self.comm_protocol}")
 
@@ -481,13 +714,12 @@ class ClientHandler(object):
             key_name = command_conf.get("reg_description")
             value = self.parser.parse(command_response, data_type)
             logger.info(f"key: {key_name}, Register: {register_address}, Value: {value}")
-            datalogger.info(f"key: {key_name}, Register: {register_address}, Value: {value}")
-            push_to_server = self.current_command_index == self.register_count
-            api_logger.log({
+            push_to_server = self.current_command_index >= self.register_count - 1
+            self._log_measurement_with_configured_loggers({
                 "key": key_name,
                 "register": register_address,
                 "value": value
-            }, push_to_server)
+            }, push_to_server=push_to_server)
             # things_board_api_logger.log({
             #     "key": key_name,
             #     "Register": register_address,

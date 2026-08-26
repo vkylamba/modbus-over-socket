@@ -1,0 +1,23 @@
+{
+  "device_type": "mona",
+  "connection_type": "socket",
+  "comm_protocol": "json",
+  "loggers": [
+    {
+      "name": "json_store",
+      "enabled": true
+    },
+    {
+      "name": "iot.py",
+      "enabled": true,
+      "options": {
+        "default_api_key_env": "DEVICE_API_KEY",
+        "device_key_fields": ["dev", "device_id", "device"],
+        "device_api_key_env_map": {
+          "mona-dev-001": "DEVICE_API_KEY_MONA_DEV_001",
+          "mona-device-id-001": "DEVICE_API_KEY_MONA_DEVICE_ID_001"
+        }
+      }
+    }
+  ]
+}

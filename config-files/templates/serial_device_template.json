@@ -1,0 +1,56 @@
+{
+  "device_type": "serial_modbus",
+  "dev": "serial-dev-001",
+  "device_id": "serial-device-id-001",
+  "timeout": 2,
+  "comm_protocol": "modbus-rtu",
+  "connection_type": "serial",
+  "connection_device": "/dev/tty.usbserial-0000",
+  "address": 1,
+  "baudrate": 9600,
+  "data_bits": 8,
+  "parity": "N",
+  "stopbits": 1,
+  "loggers": [
+    {
+      "name": "json_store",
+      "enabled": true
+    },
+    {
+      "name": "iot.py",
+      "enabled": true,
+      "options": {
+        "default_api_key_env": "DEVICE_API_KEY",
+        "device_key_fields": ["dev", "device_id", "device"],
+        "device_api_key_env_map": {
+          "serial-dev-001": "DEVICE_API_KEY_SERIAL_DEV_001",
+          "serial-device-id-001": "DEVICE_API_KEY_SERIAL_DEVICE_ID_001"
+        }
+      }
+    }
+  ],
+  "registers": [
+    {
+      "tag_id": 1,
+      "reg_address": 40001,
+      "data_type": "INT16",
+      "scaling": 0.1,
+      "miv_val": 0,
+      "max_val": 6000,
+      "reg_count": 1,
+      "reg_description": "sample_metric_1",
+      "functioncode": 4
+    },
+    {
+      "tag_id": 2,
+      "reg_address": 40002,
+      "data_type": "INT16",
+      "scaling": 0.1,
+      "miv_val": 0,
+      "max_val": 6000,
+      "reg_count": 1,
+      "reg_description": "sample_metric_2",
+      "functioncode": 4
+    }
+  ]
+}

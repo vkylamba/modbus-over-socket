@@ -9,9 +9,13 @@ Default UI port:
 
 Features:
 - See currently connected devices
+- Monitoring dashboard summary with connected device count and total RX/TX message+byte counters
+- Optional auto-refresh for dashboard (`/?auto_refresh=5` or `10`)
+- Stale device indicator based on last RX time (threshold via `STALE_DEVICE_SECONDS`, default `90`)
 - View each device's last update time
 - Set device type (`Mona` or `Other`) from list and details page
 - Open a device details page
+- View per-device active logger list and per-device RX/TX flow stats
 - Inspect recent inbound and outbound device traffic in a scrollable panel
 - Build either a structured JSON command payload or a topic + plain-text payload
 - Auto-generate `command_id` values on every send
@@ -23,6 +27,19 @@ Mona behavior:
 	- `/<device_name>/devices/<device_name>/cmd-req`
 	- `/<device_name>/devices/<device_name>/update-trigger`
 	- `/iotaapsys/services/heartbeat`
+
+Mona config template:
+- Use `config-files/templates/mona_device_template.json` as a base template.
+- Logger config is now supported using `loggers` in device config.
+- Default logger is `json_store` (writes to `data/data.json`).
+- Optional external logger example:
+  - `iot.py` with `options.api_key_env` set to `DEVICE_API_KEY`.
+
+Serial device config template:
+- Use `config-files/templates/serial_device_template.json` for function code `4` (input registers).
+- Use `config-files/templates/serial_device_template_fc3.json` for function code `3` (holding registers).
+- Includes serial/RTU communication fields and sample register entries.
+- Includes logger configuration with per-device API key mapping using `dev` and `device_id`.
 
 Example plain-text payload in the web UI:
 - Topic: `/iotaapsys/services/heartbeat`

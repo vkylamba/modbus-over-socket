@@ -7,15 +7,25 @@ HEARTBEAT_PATH = '/api/heartbeat/'
 DEVICE_PATH = '/api/devices/'
 DATA_PATH = '/api/data/'
 
-API_KEY = os.environ.get('DEVICE_API_KEY')
-
 class APILogger:
 
-    def __init__(self):
-        self.device_token = API_KEY
+    def __init__(self, api_key_env='DEVICE_API_KEY'):
+        self.api_key_env = api_key_env
+        self.device_token = os.environ.get(self.api_key_env)
         self.payload = {}
 
+    def set_device_token(self, device_token):
+        if self.device_token != device_token:
+            self.payload = {}
+        self.device_token = device_token
+
+    def set_api_key_env(self, api_key_env):
+        self.api_key_env = api_key_env
+        self.set_device_token(os.environ.get(self.api_key_env))
+
     def log_heartbeat(self, dev_name):
+        if not self.device_token:
+            return
         try:
             url = f"{API_BASE}{HEARTBEAT_PATH}"
             response = requests.post(
@@ -45,6 +55,9 @@ class APILogger:
             if key_name is not None:
                 self.payload[key_name] = key_val
         else:
+            if not self.device_token:
+                self.payload = {}
+                return
             try:
                 url = f"{API_BASE}{DATA_PATH}"
                 response = requests.post(

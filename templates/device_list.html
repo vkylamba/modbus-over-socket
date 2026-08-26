@@ -1,0 +1,283 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    {% if auto_refresh_seconds > 0 %}
+    <meta http-equiv="refresh" content="{{ auto_refresh_seconds }}">
+    {% endif %}
+    <title>Device Admin</title>
+    <style>
+        :root {
+            --bg: #f2efe8;
+            --panel: #fffaf1;
+            --ink: #1f2933;
+            --muted: #52606d;
+            --accent: #c8553d;
+            --line: #dccfb8;
+            --soft: #f8ecd7;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: Georgia, "Iowan Old Style", serif;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at top left, #f8dcc2 0, transparent 24%),
+                linear-gradient(135deg, #f4f0e7, #ebe4d8 50%, #e2d7c6 100%);
+            min-height: 100vh;
+        }
+        .page {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 32px 20px 48px;
+        }
+        h1 {
+            margin: 0 0 8px;
+            font-size: 44px;
+            letter-spacing: 0.02em;
+        }
+        .subtitle {
+            margin: 0 0 28px;
+            color: var(--muted);
+            font-size: 18px;
+        }
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+        .stat {
+            background: rgba(255, 250, 241, 0.92);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 12px 14px;
+            box-shadow: 0 8px 18px rgba(59, 48, 30, 0.06);
+        }
+        .stat-label {
+            color: var(--muted);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+        .stat-value {
+            font-size: 24px;
+            margin-top: 4px;
+        }
+        .pill {
+            display: inline-block;
+            padding: 8px 14px;
+            border-radius: 999px;
+            background: rgba(200, 85, 61, 0.12);
+            color: var(--accent);
+            font-weight: 700;
+        }
+        .pill.warn {
+            background: rgba(197, 92, 57, 0.2);
+        }
+        .refresh {
+            text-decoration: none;
+            color: var(--ink);
+            border: 1px solid var(--line);
+            padding: 10px 14px;
+            border-radius: 12px;
+            background: var(--panel);
+        }
+        .refresh-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: flex-end;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 18px;
+        }
+        .card {
+            display: block;
+            text-decoration: none;
+            color: inherit;
+            padding: 20px;
+            background: rgba(255, 250, 241, 0.92);
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(59, 48, 30, 0.08);
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            transition: transform 120ms ease;
+        }
+        .label { color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; }
+        .value { font-size: 24px; margin: 6px 0 14px; }
+        .meta { color: var(--muted); font-size: 15px; line-height: 1.5; }
+        .chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 10px;
+        }
+        .chip {
+            display: inline-block;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            background: rgba(255,255,255,0.8);
+            color: var(--muted);
+            padding: 3px 9px;
+            font-size: 12px;
+        }
+        .chip.ok {
+            border-color: #b8dbbe;
+            color: #1e6f2d;
+            background: #eef8f0;
+        }
+        .chip.stale {
+            border-color: #efc28f;
+            color: #a15700;
+            background: #fff1df;
+        }
+        .row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+        .card form {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .card select {
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 6px 8px;
+            background: #fff;
+        }
+        .card button {
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: #fff;
+            padding: 6px 10px;
+            cursor: pointer;
+        }
+        .view-link {
+            color: var(--accent);
+            font-weight: 700;
+            text-decoration: none;
+        }
+        .empty {
+            background: rgba(255,250,241,0.85);
+            border: 1px dashed var(--line);
+            border-radius: 20px;
+            padding: 28px;
+            color: var(--muted);
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <h1>Monitoring Dashboard</h1>
+        <p class="subtitle">Connected TCP devices, active loggers, and data-flow health.</p>
+        <div class="toolbar">
+            <div>
+                <span class="pill">{{ dashboard.connected_devices }} connected</span>
+                <span class="pill {% if dashboard.stale_devices > 0 %}warn{% endif %}">{{ dashboard.stale_devices }} stale</span>
+            </div>
+            <div class="refresh-group">
+                <a class="refresh" href="{{ url_for('device_list') }}">Refresh</a>
+                <a class="refresh" href="{{ url_for('device_list', auto_refresh=0) }}">Auto: Off</a>
+                <a class="refresh" href="{{ url_for('device_list', auto_refresh=5) }}">Auto: 5s</a>
+                <a class="refresh" href="{{ url_for('device_list', auto_refresh=10) }}">Auto: 10s</a>
+            </div>
+        </div>
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-label">Connected Devices</div>
+                <div class="stat-value">{{ dashboard.connected_devices }}</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">RX Messages</div>
+                <div class="stat-value">{{ dashboard.total_rx_messages }}</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">TX Messages</div>
+                <div class="stat-value">{{ dashboard.total_tx_messages }}</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">RX Bytes</div>
+                <div class="stat-value">{{ dashboard.total_rx_bytes }}</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">TX Bytes</div>
+                <div class="stat-value">{{ dashboard.total_tx_bytes }}</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Auto Refresh</div>
+                <div class="stat-value">{% if auto_refresh_seconds > 0 %}{{ auto_refresh_seconds }}s{% else %}Off{% endif %}</div>
+            </div>
+        </div>
+        {% if devices %}
+            <div class="grid">
+                {% for device in devices %}
+                    <div class="card">
+                        <div class="label">Device ID</div>
+                        <div class="value">{{ device['device_id'] }}</div>
+                        <div class="meta">Type: {{ device.get('device_type') or 'Other' }}</div>
+                        <div class="meta">Name: {{ device.get('device_name') or 'Unknown' }}</div>
+                        <div class="meta">MAC: {{ device.get('mac_address') or 'Unknown' }}</div>
+                        <div class="meta">Client: {{ device['client_address'] }}</div>
+                        <div class="meta">Connected at: {{ device.get('connected_at') or 'Unknown' }}</div>
+                        <div class="meta">Last update: {{ device.get('last_update_at') or 'No data yet' }}</div>
+                        <div class="meta">Last topic: {{ device.get('last_topic') or 'Unavailable' }}</div>
+                        <div class="meta">Flow: RX {{ device.get('data_flow', {}).get('rx_messages', 0) }} msgs / {{ device.get('data_flow', {}).get('rx_bytes', 0) }} bytes</div>
+                        <div class="meta">Flow: TX {{ device.get('data_flow', {}).get('tx_messages', 0) }} msgs / {{ device.get('data_flow', {}).get('tx_bytes', 0) }} bytes</div>
+                        <div class="meta">Last RX: {{ device.get('data_flow', {}).get('last_rx_at') or 'Never' }}</div>
+                        <div class="meta">Last TX: {{ device.get('data_flow', {}).get('last_tx_at') or 'Never' }}</div>
+                        <div class="chips">
+                            <span class="chip {% if device.get('is_stale') %}stale{% else %}ok{% endif %}">
+                                {% if device.get('is_stale') %}
+                                    stale ({{ device.get('stale_for_seconds') }}s)
+                                {% else %}
+                                    active
+                                {% endif %}
+                            </span>
+                            {% if device.get('active_loggers') %}
+                                {% for logger_name in device.get('active_loggers') %}
+                                    <span class="chip">{{ logger_name }}</span>
+                                {% endfor %}
+                            {% else %}
+                                <span class="chip">no-loggers</span>
+                            {% endif %}
+                        </div>
+                        <div class="row">
+                            <a class="view-link" href="{{ url_for('device_detail', device_id=device['device_id']) }}">Open details</a>
+                            <form method="post" action="{{ url_for('set_device_type') }}">
+                                <input type="hidden" name="device_id" value="{{ device['device_id'] }}">
+                                <select name="device_type">
+                                    <option value="Mona" {% if device.get('device_type') == 'Mona' %}selected{% endif %}>Mona</option>
+                                    <option value="Other" {% if device.get('device_type') != 'Mona' %}selected{% endif %}>Other</option>
+                                </select>
+                                <button type="submit">Set</button>
+                            </form>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty">No devices are connected right now.</div>
+        {% endif %}
+    </div>
+</body>
+</html>
