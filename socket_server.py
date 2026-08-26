@@ -22,6 +22,8 @@ WEB_UI_PORT = int(WEB_UI_PORT)
 ADMIN_UI_USERNAME = os.environ.get('ADMIN_UI_USERNAME', 'admin')
 ADMIN_UI_PASSWORD = os.environ.get('ADMIN_UI_PASSWORD', 'admin')
 STALE_DEVICE_SECONDS = int(os.environ.get('STALE_DEVICE_SECONDS', '90'))
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+DEVICE_TEMPLATES_DIR = os.path.join(PROJECT_ROOT, "config-files", "templates")
 
 DEVICE_LIST_TEMPLATE = "device_list.html"
 DEVICE_DETAIL_TEMPLATE = "device_detail.html"
@@ -162,6 +164,16 @@ class DeviceRegistry:
         if handler is None:
             raise KeyError("device not found")
         handler.set_device_type(device_type)
+
+    def deploy_configuration(self, device_id, configuration):
+        handler = self.get_handler(device_id)
+        if handler is None:
+            raise KeyError("device not found")
+
+        if not hasattr(handler, "apply_configuration_dict"):
+            raise ValueError("handler does not support configuration deployment")
+
+        handler.apply_configuration_dict(configuration)
 
 
 def build_mona_topics(device_name):
@@ -304,6 +316,31 @@ def create_web_app(registry):
             "wait_for_response": True
         }
 
+    def _list_template_files():
+        try:
+            file_names = []
+            for name in os.listdir(DEVICE_TEMPLATES_DIR):
+                if name.endswith(".json"):
+                    file_names.append(name)
+            file_names.sort()
+            return file_names
+        except FileNotFoundError:
+            return []
+
+    def _template_path(template_name):
+        safe_name = os.path.basename(template_name or "")
+        if not safe_name.endswith(".json"):
+            raise ValueError("Template must be a .json file")
+        path = os.path.join(DEVICE_TEMPLATES_DIR, safe_name)
+        if not os.path.isfile(path):
+            raise FileNotFoundError(f"Template not found: {safe_name}")
+        return path
+
+    def _load_template_text(template_name):
+        path = _template_path(template_name)
+        with open(path, "r", encoding="utf-8") as fp:
+            return fp.read()
+
     @app.route("/")
     def device_list():
         devices = registry.list_devices()
@@ -345,8 +382,17 @@ def create_web_app(registry):
 
         form_values = default_form_values(device)
         send_result = None
+        template_result = None
         payload_preview = ""
         mona_topics = build_mona_topics(form_values.get("device_name") or device.get("device_name"))
+        available_templates = _list_template_files()
+        selected_template = available_templates[0] if available_templates else ""
+        template_payload = ""
+        if selected_template:
+            try:
+                template_payload = _load_template_text(selected_template)
+            except Exception:
+                template_payload = "{}"
 
         if request.method == "POST":
             form_action = request.form.get("form_action", "send_command")
@@ -363,11 +409,43 @@ def create_web_app(registry):
                 "append_newline": request.form.get("append_newline") == "1",
                 "wait_for_response": request.form.get("wait_for_response") == "1"
             }
+            selected_template = request.form.get("template_name", selected_template).strip()
+            template_payload = request.form.get("template_payload", template_payload)
 
-            try:
-                registry.set_device_type(device_id, form_values["device_type"])
-            except Exception as ex:
-                logger.error("Failed setting device type from detail page: %s", ex)
+            if "device_type" in request.form:
+                try:
+                    registry.set_device_type(device_id, form_values["device_type"])
+                except Exception as ex:
+                    logger.error("Failed setting device type from detail page: %s", ex)
+
+            if form_action == "load_template":
+                try:
+                    template_payload = _load_template_text(selected_template)
+                    template_result = {
+                        "ok": True,
+                        "message": f"Loaded template {selected_template}"
+                    }
+                except Exception as ex:
+                    template_result = {
+                        "ok": False,
+                        "message": f"Failed loading template: {escape(str(ex))}"
+                    }
+
+            elif form_action == "deploy_template":
+                try:
+                    deployed_config = json.loads(template_payload)
+                    if not isinstance(deployed_config, dict):
+                        raise ValueError("Template payload must be a JSON object")
+                    registry.deploy_configuration(device_id, deployed_config)
+                    template_result = {
+                        "ok": True,
+                        "message": f"Deployed template to device {device_id}"
+                    }
+                except Exception as ex:
+                    template_result = {
+                        "ok": False,
+                        "message": f"Deploy failed: {escape(str(ex))}"
+                    }
 
             if form_action != "send_command":
                 device = registry.get_device_snapshot(device_id) or device
@@ -392,9 +470,13 @@ def create_web_app(registry):
                     device=device,
                     events=events,
                     send_result=send_result,
+                    template_result=template_result,
                     form_values=form_values,
                     payload_preview=payload_preview,
-                    mona_topics=mona_topics
+                    mona_topics=mona_topics,
+                    available_templates=available_templates,
+                    selected_template=selected_template,
+                    template_payload=template_payload
                 )
 
             try:
@@ -491,9 +573,13 @@ def create_web_app(registry):
             device=device,
             events=events,
             send_result=send_result,
+            template_result=template_result,
             form_values=form_values,
             payload_preview=payload_preview,
-            mona_topics=mona_topics
+            mona_topics=mona_topics,
+            available_templates=available_templates,
+            selected_template=selected_template,
+            template_payload=template_payload
         )
 
     return app

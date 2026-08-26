@@ -642,6 +642,12 @@ class ClientHandler(object):
         with open(conf_file, 'r') as fp:
             data_dict = json.load(fp)
 
+        self.apply_configuration_dict(data_dict)
+
+    def apply_configuration_dict(self, data_dict):
+        if not isinstance(data_dict, dict):
+            raise ValueError("Invalid configuration payload")
+
         self.connection_type = data_dict.get('connection_type', 'socket')
         self.comm_protocol = data_dict.get('comm_protocol')
         self.target_address = data_dict.get("address")

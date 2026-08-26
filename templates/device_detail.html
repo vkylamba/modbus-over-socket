@@ -335,6 +335,37 @@
 
                         <button type="submit">Send Command</button>
                     </form>
+
+                    <hr style="margin:22px 0; border:0; border-top:1px solid #e6dbc7;">
+
+                    {% if template_result %}
+                        <div class="status {% if not template_result.get('ok') %}warn{% endif %}">
+                            {{ template_result.get('message') }}
+                        </div>
+                    {% endif %}
+
+                    <form method="post">
+                        <input type="hidden" name="form_action" value="deploy_template">
+
+                        <label for="template_name">Device Template</label>
+                        <div class="split">
+                            <div>
+                                <select id="template_name" name="template_name">
+                                    {% for template_name in available_templates %}
+                                        <option value="{{ template_name }}" {% if selected_template == template_name %}selected{% endif %}>{{ template_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div>
+                                <button type="submit" formaction="{{ url_for('device_detail', device_id=device['device_id']) }}" name="form_action" value="load_template" style="background:linear-gradient(135deg,#b07d35,#8d5f1f);">Load Template</button>
+                            </div>
+                        </div>
+
+                        <label for="template_payload">Template Configuration JSON</label>
+                        <textarea id="template_payload" name="template_payload" placeholder="{}">{{ template_payload }}</textarea>
+
+                        <button type="submit" {% if not available_templates %}disabled{% endif %}>Deploy Template To Device</button>
+                    </form>
                 </div>
             </section>
         </div>
