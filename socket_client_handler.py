@@ -369,6 +369,8 @@ class ClientHandler(object):
         if isinstance(topic, str) and "payload" in payload:
             if isinstance(nested_payload, dict):
                 return dict(nested_payload)
+            if isinstance(nested_payload, list):
+                return list(nested_payload)
             return nested_payload
 
         return dict(payload)
