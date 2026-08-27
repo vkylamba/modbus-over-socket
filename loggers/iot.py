@@ -95,8 +95,6 @@ class APILogger:
                 f"{LOG_PREFIX} Skipping IoT JSON post: payload is null."
             )
             return
-        if isinstance(payload, tuple):
-            payload = list(payload)
         if not payload:
             print(f"{LOG_PREFIX} Skipping IoT JSON post: payload is empty.")
             return
