@@ -95,6 +95,12 @@ class APILogger:
                 f"{LOG_PREFIX} Skipping IoT JSON post: payload is null."
             )
             return
+        if not isinstance(payload, (dict, list)):
+            print(
+                f"{LOG_PREFIX} Skipping IoT JSON post: payload must be an object or list, "
+                f"got {type(payload).__name__}."
+            )
+            return
         if not payload:
             print(f"{LOG_PREFIX} Skipping IoT JSON post: payload is empty.")
             return
