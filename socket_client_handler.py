@@ -360,6 +360,21 @@ class ClientHandler(object):
 
         return "modbus" in topic.lower()
 
+    def _extract_iot_json_payload(self, payload):
+        if not isinstance(payload, dict):
+            return payload
+
+        topic = payload.get("topic")
+        nested_payload = payload.get("payload")
+        if isinstance(topic, str) and topic and "payload" in payload:
+            if isinstance(nested_payload, dict):
+                return dict(nested_payload)
+            if isinstance(nested_payload, list):
+                return list(nested_payload)
+            return nested_payload
+
+        return dict(payload)
+
     def _log_payload_with_configured_loggers(self, payload):
         for logger_entry in self.configured_loggers:
             logger_kind = logger_entry["kind"]
@@ -383,7 +398,7 @@ class ClientHandler(object):
                             }, push_to_server=False)
                         logger_instance.log({}, push_to_server=True)
                     else:
-                        logger_instance.log_json(dict(payload))
+                        logger_instance.log_json(self._extract_iot_json_payload(payload))
             except Exception as ex:
                 logger.error("Failed logger '%s': %s", logger_entry["name"], ex)
 

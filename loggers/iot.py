@@ -90,14 +90,19 @@ class APILogger:
                 f"Expected env key '{self.api_key_env}' to be set."
             )
             return
-        if not isinstance(payload, dict):
+        if payload is None:
             print(
-                f"{LOG_PREFIX} Skipping IoT JSON post: payload must be a dict, "
+                f"{LOG_PREFIX} Skipping IoT JSON post: payload is None."
+            )
+            return
+        if not isinstance(payload, (dict, list)):
+            print(
+                f"{LOG_PREFIX} Skipping IoT JSON post: payload must be an object or list, "
                 f"got {type(payload).__name__}."
             )
             return
         if not payload:
-            print(f"{LOG_PREFIX} Skipping IoT JSON post: payload dict is empty.")
+            print(f"{LOG_PREFIX} Skipping IoT JSON post: payload is empty.")
             return
         try:
             url = f"{API_BASE}{DATA_PATH}"
