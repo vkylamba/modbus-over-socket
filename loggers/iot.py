@@ -92,7 +92,7 @@ class APILogger:
             return
         if payload is None:
             print(
-                f"{LOG_PREFIX} Skipping IoT JSON post: payload is null."
+                f"{LOG_PREFIX} Skipping IoT JSON post: payload is None."
             )
             return
         if not isinstance(payload, (dict, list)):
