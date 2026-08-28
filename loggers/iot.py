@@ -1,3 +1,4 @@
+import json
 import os
 
 import requests
@@ -95,6 +96,17 @@ class APILogger:
                 f"{LOG_PREFIX} Skipping IoT JSON post: payload is None."
             )
             return
+
+        if isinstance(payload, str):
+            candidate = payload.strip()
+            if len(candidate) >= 2 and candidate[0] == candidate[-1] and candidate[0] in {'"', "'"}:
+                candidate = candidate[1:-1].strip()
+            try:
+                parsed = json.loads(candidate)
+            except (TypeError, ValueError):
+                parsed = payload
+            payload = parsed
+
         if not isinstance(payload, (dict, list)):
             print(
                 f"{LOG_PREFIX} Skipping IoT JSON post: payload must be an object or list, "
